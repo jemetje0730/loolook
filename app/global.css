@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --nav-h: 64px; }
+html, body { height: 100%; }
+body { color: rgb(17 24 39); }

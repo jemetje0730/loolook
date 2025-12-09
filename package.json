@@ -1,0 +1,40 @@
+{
+  "name": "loolook",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "csv-parse": "^6.1.0",
+    "dotenv": "^17.2.3",
+    "next": "^15.5.7",
+    "postgres": "3.4.4",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "zod": "3.23.8",
+    "zustand": "4.5.5"
+  },
+  "devDependencies": {
+    "@types/csv-parse": "^1.1.12",
+    "@types/node": "^20.11.30",
+    "@types/node-fetch": "2.6.11",
+    "@types/papaparse": "5.3.14",
+    "@types/react": "18.2.79",
+    "@types/react-dom": "18.2.25",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "15.0.3",
+    "node-fetch": "2.7.0",
+    "papaparse": "5.4.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.13",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
