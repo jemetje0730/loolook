@@ -48,7 +48,7 @@ export default function AddToiletPage() {
   };
 
   return (
-    <main className="pt-20 max-w-xl mx-auto px-4 pb-16">
+    <main className="pt-40 max-w-xl mx-auto px-4 pb-16">
       <h1 className="text-3xl font-extrabold mb-2">Add a Toilet</h1>
       <p className="text-gray-500 mb-8">
         지도에 없는 화장실을 발견하셨나요? 정보를 공유해주세요.

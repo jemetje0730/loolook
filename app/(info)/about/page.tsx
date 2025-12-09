@@ -1,6 +1,6 @@
 export default function AboutPage() {
   return (
-    <main className="pt-20 max-w-3xl mx-auto px-4 pb-16">
+    <main className="pt-40 max-w-3xl mx-auto px-4 pb-16">
       {/* 헤더 섹션 */}
       <div className="mb-10">
         <h1 className="text-4xl font-extrabold mb-4 tracking-tight">
