@@ -6,7 +6,7 @@ export default function ContactPage() {
   const [message, setMessage] = useState('');
 
   return (
-    <main className="pt-20 max-w-2xl mx-auto px-4 pb-16">
+    <main className="pt-40 max-w-2xl mx-auto px-4 pb-16">
       <h1 className="text-3xl font-bold mb-2">Contact Us</h1>
       <p className="text-gray-600 mb-8">
         버그 제보, 데이터 수정 요청, 파트너십 문의 등 무엇이든 환영합니다.

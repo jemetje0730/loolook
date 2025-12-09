@@ -13,7 +13,7 @@ export default function FeedbackPage() {
   };
 
   return (
-    <main className="pt-20 max-w-xl mx-auto px-6 pb-16">
+    <main className="pt-40 max-w-xl mx-auto px-6 pb-16">
       <h1 className="text-3xl font-bold mb-2">Feedback</h1>
       <p className="text-gray-600 mb-8 text-sm">
         잘못된 정보가 있거나 개선할 점이 있다면 알려주세요.<br/>

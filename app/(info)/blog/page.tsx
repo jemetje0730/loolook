@@ -22,7 +22,7 @@ export default function BlogPage() {
   ];
 
   return (
-    <main className="pt-20 max-w-2xl mx-auto px-6 pb-16">
+    <main className="pt-32 max-w-2xl mx-auto px-6 pb-16">
       <div className="mb-8 border-b pb-4">
         <h1 className="text-3xl font-bold text-gray-900">News & Updates</h1>
         <p className="text-gray-500 mt-2 text-sm">
