@@ -15,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "baseUrl": ".",
     "paths": {
@@ -34,8 +34,10 @@
     "**/*.tsx",
     "next-env.d.ts",
     "types/**/*.d.ts",
-    ".next/types/**/*.ts"
-, "app/admin/seed/page.txs"  ],
+    ".next/types/**/*.ts",
+    "app/admin/seed/page.txs",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]
