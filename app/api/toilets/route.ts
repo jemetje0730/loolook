@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
     const mode = searchParams.get('mode');
     const isPublic = searchParams.get('public');
 
-    // ---------- 1) 전체 조회 모드 (MapView 기본 로직) ----------
     if (mode === 'all') {
       const rows = await sql`
         SELECT id, name, address,
@@ -31,37 +30,8 @@ export async function GET(req: NextRequest) {
       { error: 'Invalid mode. Use ?mode=all' },
       { status: 400 },
     );
-
   } catch (e: any) {
     console.error('toilets GET error', e);
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const toilets = Array.isArray(body) ? body : [body];
-
-    for (const t of toilets) {
-      if (!t.name || !t.address || typeof t.lat !== 'number' || typeof t.lng !== 'number') continue;
-
-      await sql`
-        INSERT INTO toilets (name, address, is_public, geom)
-        VALUES (
-          ${t.name},
-          ${t.address},
-          ${t.is_public ?? true},
-          ST_SetSRID(ST_MakePoint(${t.lng}, ${t.lat}), 4326)::geography
-        )
-        ON CONFLICT DO NOTHING;
-      `;
-    }
-
-    return NextResponse.json({ ok: true, count: toilets.length });
-
-  } catch (e: any) {
-    console.error('toilets POST error', e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
