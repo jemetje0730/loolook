@@ -9,6 +9,7 @@ import { parse } from 'csv-parse/sync';
 
 const DATABASE_URL = process.env.DATABASE_URL!;
 const KAKAO_KEY = process.env.KAKAO_REST_KEY!;
+const VWORLD_KEY = process.env.VWORLD_KEY ?? '';
 
 if (!DATABASE_URL) {
   console.error('[add-addresses] ❌ DATABASE_URL 누락 (.env.local 확인)');
@@ -31,8 +32,6 @@ type AddRow = {
   female_toilet?: string;
   male_disabled?: string;
   female_disabled?: string;
-  male_child?: string;
-  female_child?: string;
   emergency_bell?: string;
   cctv?: string;
   baby_change?: string;
@@ -86,26 +85,80 @@ function normalizeOX(v?: string) {
   return null;
 }
 
-async function geocode(addr: string) {
-  const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
-    addr,
-  )}`;
-  const resp = await fetch(url, {
-    headers: { Authorization: `KakaoAK ${KAKAO_KEY}` },
-  });
-  if (!resp.ok) {
-    console.error('[add-addresses] Kakao HTTP 에러:', resp.status);
-    return null;
+function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371e3; // meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // meters
+}
+
+async function vworld(addr: string) {
+  if (!VWORLD_KEY) return null;
+  for (const type of ['road', 'parcel'] as const) {
+    const url = `https://api.vworld.kr/req/address?service=address&request=getCoord&version=2.0&crs=EPSG:4326&formats=json&type=${type}&refine=true&simple=true&address=${encodeURIComponent(addr)}&key=${VWORLD_KEY}`;
+    try {
+      const r = await fetch(url, { timeout: 9000 } as any);
+      const j: any = await r.json().catch(() => ({}));
+      const p = j?.response?.result?.point;
+      if (p?.x && p?.y) {
+        const lng = Number(p.x), lat = Number(p.y);
+        if (isValidKoreaCoord(lat, lng)) return { lat, lng, src: `vworld-${type}` as const };
+      }
+    } catch { }
   }
-  const j: any = await resp.json().catch(() => ({}));
-  const d = j?.documents?.[0];
-  if (!d) return null;
+  return null;
+}
 
-  const lat = Number(d.y);
-  const lng = Number(d.x);
-  if (!isValidKoreaCoord(lat, lng)) return null;
+async function kakaoAddress(addr: string, analyzeType?: 'exact' | 'similar') {
+  const types = analyzeType ? [analyzeType] : ['exact', 'similar'] as const;
+  for (const analyze of types) {
+    try {
+      const resp = await fetch(
+        `https://dapi.kakao.com/v2/local/search/address.json?analyze_type=${analyze}&size=1&query=${encodeURIComponent(addr)}`,
+        { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` }, timeout: 9000 } as any
+      );
+      if (!resp.ok) {
+        const txt = await resp.text().catch(() => '');
+        console.error(`[add-addresses] Kakao ${analyze} 에러: ${resp.status} ${txt}`);
+        continue;
+      }
+      const data: any = await resp.json().catch(() => ({}));
+      const d = data?.documents?.[0];
+      const x = Number(d?.x ?? d?.address?.x ?? d?.road_address?.x);
+      const y = Number(d?.y ?? d?.address?.y ?? d?.road_address?.y);
+      if (isValidKoreaCoord(y, x)) return { lat: y, lng: x, src: `kakao-address-${analyze}` as const };
+    } catch { }
+  }
+  return null;
+}
 
-  return { lat, lng };
+async function geocode(addr: string) {
+  // 1) Kakao exact 우선
+  const ka_exact = await kakaoAddress(addr, 'exact');
+  const v = await vworld(addr);
+
+  // Kakao exact와 VWorld 둘 다 있으면 비교
+  if (ka_exact && v) {
+    const dist = haversineDistance(ka_exact.lat, ka_exact.lng, v.lat, v.lng);
+    if (dist > 100) {
+      console.warn(`[add-addresses] ⚠️  좌표 차이 ${Math.round(dist)}m`);
+      console.warn(`    Kakao: ${ka_exact.lat},${ka_exact.lng} | VWorld: ${v.lat},${v.lng}`);
+    }
+    return ka_exact;
+  }
+  if (ka_exact) return ka_exact;
+  if (v) return v;
+
+  // 2) Kakao similar
+  const ka_similar = await kakaoAddress(addr, 'similar');
+  if (ka_similar) return ka_similar;
+
+  return null;
 }
 
 async function main() {
@@ -149,8 +202,6 @@ async function main() {
     const female_toilet = normalizeOX(row.female_toilet);
     const male_disabled = normalizeOX(row.male_disabled);
     const female_disabled = normalizeOX(row.female_disabled);
-    const male_child = normalizeOX(row.male_child);
-    const female_child = normalizeOX(row.female_child);
 
     const emergency_bell = toBool(row.emergency_bell);
     const cctv = toBool(row.cctv);
@@ -179,7 +230,6 @@ async function main() {
         category, phone, open_time,
         male_toilet, female_toilet,
         male_disabled, female_disabled,
-        male_child, female_child,
         emergency_bell, cctv, baby_change
       )
       VALUES (
@@ -196,7 +246,6 @@ async function main() {
         ${category}, ${phone}, ${open_time},
         ${male_toilet}, ${female_toilet},
         ${male_disabled}, ${female_disabled},
-        ${male_child}, ${female_child},
         ${emergency_bell}, ${cctv}, ${baby_change}
       )
       ON CONFLICT (fp) DO UPDATE SET
@@ -210,8 +259,6 @@ async function main() {
         female_toilet  = COALESCE(EXCLUDED.female_toilet, toilets.female_toilet),
         male_disabled  = COALESCE(EXCLUDED.male_disabled, toilets.male_disabled),
         female_disabled= COALESCE(EXCLUDED.female_disabled, toilets.female_disabled),
-        male_child     = COALESCE(EXCLUDED.male_child, toilets.male_child),
-        female_child   = COALESCE(EXCLUDED.female_child, toilets.female_child),
         emergency_bell = COALESCE(EXCLUDED.emergency_bell, toilets.emergency_bell),
         cctv           = COALESCE(EXCLUDED.cctv, toilets.cctv),
         baby_change    = COALESCE(EXCLUDED.baby_change, toilets.baby_change),
