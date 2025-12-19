@@ -2,7 +2,18 @@
 
 # Delete a specific feedback message by ID from production
 
-PRODUCTION_DB="postgresql://postgres.lickblvzhcfchhvkqktm:fnfnrdlqslek@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
+# Load environment variables
+if [ -f .env.local ]; then
+  export $(grep -v '^#' .env.local | xargs)
+else
+  echo "❌ .env.local not found"
+  exit 1
+fi
+
+if [ -z "$PRODUCTION_DB" ]; then
+  echo "❌ PRODUCTION_DB is not set"
+  exit 1
+fi
 
 if [ -z "$1" ]; then
   echo "Usage: ./scripts/delete_production_feedback_by_id.sh <id>"
