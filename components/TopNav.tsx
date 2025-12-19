@@ -19,20 +19,11 @@ export default function TopNav() {
           <Link href="/contact" className="hover:text-black">
             Contact
           </Link>
-          <Link href="/blog" className="hover:text-black">
-            Blog
-          </Link>
-          <Link
-            href="/add"
-            className="px-3 py-1 rounded-full border hover:bg-gray-100"
-          >
-            Add a Toilet
-          </Link>
           <Link
             href="/feedback"
             className="px-3 py-1 rounded-full border hover:bg-gray-100"
           >
-            Feedback
+            Report
           </Link>
         </nav>
       </div>
