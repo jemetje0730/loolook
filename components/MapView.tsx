@@ -69,7 +69,7 @@ export default function MapView() {
       const moveCenter = (lat: number, lng: number) => {
         const loc = new kakao.maps.LatLng(lat, lng);
         map.setLevel(5);
-        map.panTo(loc);
+        map.setCenter(loc);
       };
 
       const placeFallback = () => {
@@ -117,8 +117,8 @@ export default function MapView() {
       if (!map || typeof window === 'undefined' || !window.kakao?.maps) return;
       const { lat, lng } = ce.detail;
       const loc = new window.kakao.maps.LatLng(lat, lng);
-      map.panTo(loc);
       map.setLevel(6);
+      map.setCenter(loc);
     };
 
     window.addEventListener('map-move', handler as EventListener);
