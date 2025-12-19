@@ -9,7 +9,6 @@ export default function DetailPanel() {
     name, address, category, phone, open_time,
     male_toilet, female_toilet,
     male_disabled, female_disabled,
-    male_child, female_child,
     emergency_bell, cctv, baby_change,
   } = selected;
 
@@ -30,8 +29,6 @@ export default function DetailPanel() {
           <div><strong>여성 화장실:</strong> {female_toilet}</div>
           <div><strong>남성 장애인용:</strong> {male_disabled}</div>
           <div><strong>여성 장애인용:</strong> {female_disabled}</div>
-          <div><strong>남성 어린이용:</strong> {male_child}</div>
-          <div><strong>여성 어린이용:</strong> {female_child}</div>
           <div><strong>기저귀 교환대:</strong> {baby_change ? 'O' : 'X'}</div>
           <div><strong>비상벨:</strong> {emergency_bell ? 'O' : 'X'}</div>
           <div><strong>CCTV:</strong> {cctv ? 'O' : 'X'}</div>
