@@ -106,6 +106,19 @@ function cleanAddress(raw:string){
   return a;
 }
 
+// ---------- DISTANCE CALC ----------
+function haversineDistance(lat1:number, lng1:number, lat2:number, lng2:number){
+  const R = 6371e3; // meters
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(Δφ/2)*Math.sin(Δφ/2) +
+            Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)*Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // meters
+}
+
 // ---------- GEOCODERS ----------
 async function vworld(addr:string){
   if (!VWORLD_KEY) return null;
@@ -124,10 +137,11 @@ async function vworld(addr:string){
   return null;
 }
 
-async function kakaoAddress(addr:string){
+async function kakaoAddress(addr:string, analyzeType?:'exact'|'similar'){
   if (!KAKAO_REST_KEY) return null;
   const headers = { Authorization: `KakaoAK ${KAKAO_REST_KEY}` };
-  for (const analyze of ['exact','similar'] as const){
+  const types = analyzeType ? [analyzeType] : ['exact','similar'] as const;
+  for (const analyze of types){
     try{
       const resp = await fetch(
         `https://dapi.kakao.com/v2/local/search/address.json?analyze_type=${analyze}&size=1&query=${encodeURIComponent(addr)}`,
@@ -172,11 +186,29 @@ async function geocodeSmart(raw:string){
   // 1차: 원문 정리
   const cleaned = cleanAddress(raw);
 
-  // 1) 정규 주소
-  const v = await vworld(cleaned); if (v) return v;
-  const ka = await kakaoAddress(cleaned); if (ka) return ka;
+  // 1) Kakao 우선 (exact match)
+  const ka_exact = await kakaoAddress(cleaned, 'exact');
+  const v = await vworld(cleaned);
 
-  // 2) 특수 케이스: 역/공원/시장/보도육교 등 POI
+  // Kakao exact와 VWorld 둘 다 있으면 비교
+  if (ka_exact && v) {
+    const dist = haversineDistance(ka_exact.lat, ka_exact.lng, v.lat, v.lng);
+    if (dist > 100) {
+      // 100m 이상 차이나면 경고 로그
+      console.warn(`  ⚠️  좌표 차이 ${Math.round(dist)}m: ${raw.slice(0,40)}`);
+      console.warn(`      Kakao: ${ka_exact.lat},${ka_exact.lng} | VWorld: ${v.lat},${v.lng}`);
+    }
+    // Kakao exact 우선 채택
+    return ka_exact;
+  }
+  if (ka_exact) return ka_exact;
+  if (v) return v;
+
+  // 2) Kakao similar
+  const ka_similar = await kakaoAddress(cleaned, 'similar');
+  if (ka_similar) return ka_similar;
+
+  // 3) 특수 케이스: 역/공원/시장/보도육교 등 POI
   const isPOI = /(역|공원|시장|광장|체육|자연공원|보도육교)/.test(cleaned);
   const centroid = await areaCentroid(cleaned);
   if (isPOI) {
@@ -188,7 +220,7 @@ async function geocodeSmart(raw:string){
     if (k2) return k2;
   }
 
-  // 3) 변형 시도: '로 75길' → '로75길', '동 256-4' → '동256-4' 등 역방향 변형도 한 번
+  // 4) 변형 시도: '로 75길' → '로75길', '동 256-4' → '동256-4' 등 역방향 변형도 한 번
   const variants = new Set<string>();
   variants.add(
     cleaned
@@ -201,8 +233,10 @@ async function geocodeSmart(raw:string){
   );
 
   for (const vaddr of variants){
-    const v2 = await vworld(vaddr); if (v2) return v2;
-    const k2 = await kakaoAddress(vaddr); if (k2) return k2;
+    const k_var = await kakaoAddress(vaddr, 'exact');
+    if (k_var) return k_var;
+    const v2 = await vworld(vaddr);
+    if (v2) return v2;
     const k3 = await kakaoKeyword(vaddr, centroid) || await kakaoKeyword(vaddr);
     if (k3) return k3;
   }
@@ -214,6 +248,10 @@ async function geocodeSmart(raw:string){
 async function main(){
   console.log('[fill] ✅ DB 연결됨:', DATABASE_URL!.replace(/\/\/([^:]+):?[^@]*@/, '//$1:****@'));
 
+  // CLI 옵션 파싱
+  const args = process.argv.slice(2);
+  const revalidateMode = args.includes('--revalidate');
+
   const totals = await sql<TotalsRow[]>/*sql*/`
     SELECT
       (SELECT COUNT(*) FROM toilets) AS total,
@@ -223,14 +261,30 @@ async function main(){
   const geomNull = Number(totals[0].geom_null);
   console.log(`[fill] 현재 상태: 총 ${total}건 중 좌표 없음 ${geomNull}건`);
 
-  const targets = await sql<TargetRow[]>/*sql*/`
-    SELECT id, address
-    FROM toilets
-    WHERE geom IS NULL
-      AND address IS NOT NULL
-      AND length(address) > 3
-    ORDER BY id
-  `;
+  if (revalidateMode) {
+    console.log('[fill] 🔄 재검증 모드: 모든 좌표 재지오코딩');
+  }
+
+  // 쿼리 조건 직접 분기
+  let targets;
+  if (revalidateMode) {
+    targets = await sql<TargetRow[]>/*sql*/`
+      SELECT id, address
+      FROM toilets
+      WHERE address IS NOT NULL
+        AND length(address) > 3
+      ORDER BY id
+    `;
+  } else {
+    targets = await sql<TargetRow[]>/*sql*/`
+      SELECT id, address
+      FROM toilets
+      WHERE geom IS NULL
+        AND address IS NOT NULL
+        AND length(address) > 3
+      ORDER BY id
+    `;
+  }
   const target = targets.length;
   console.log(`[fill] 지오코딩 대상: ${target}건`);
   if (!target){ await sql.end(); return; }
