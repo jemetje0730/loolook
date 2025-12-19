@@ -37,15 +37,55 @@ export function useKakaoMap(ready: boolean, mapDivRef: RefObject<HTMLDivElement>
       const { kakao } = window;
 
       const last = loadLastMyLocation();
-      const initialLat = last?.lat ?? 37.5665;
-      const initialLng = last?.lng ?? 126.9780;
+      const defaultLat = 37.5665;
+      const defaultLng = 126.9780;
 
-      const m = new kakao.maps.Map(mapDivRef.current, {
-        center: new kakao.maps.LatLng(initialLat, initialLng),
-        level: 4,
-      });
+      if (last) {
+        const m = new kakao.maps.Map(mapDivRef.current, {
+          center: new kakao.maps.LatLng(last.lat, last.lng),
+          level: 4,
+        });
+        setMap(m);
+      } else {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
 
-      setMap(m);
+              if (inRange(lat, KR.minLat, KR.maxLat) && inRange(lng, KR.minLng, KR.maxLng)) {
+                const m = new kakao.maps.Map(mapDivRef.current!, {
+                  center: new kakao.maps.LatLng(lat, lng),
+                  level: 4,
+                });
+                try {
+                  window.sessionStorage.setItem('lastMyLocation', JSON.stringify({ lat, lng }));
+                } catch (e) {}
+                setMap(m);
+              } else {
+                const m = new kakao.maps.Map(mapDivRef.current!, {
+                  center: new kakao.maps.LatLng(defaultLat, defaultLng),
+                  level: 4,
+                });
+                setMap(m);
+              }
+            },
+            () => {
+              const m = new kakao.maps.Map(mapDivRef.current!, {
+                center: new kakao.maps.LatLng(defaultLat, defaultLng),
+                level: 4,
+              });
+              setMap(m);
+            },
+          );
+        } else {
+          const m = new kakao.maps.Map(mapDivRef.current, {
+            center: new kakao.maps.LatLng(defaultLat, defaultLng),
+            level: 4,
+          });
+          setMap(m);
+        }
+      }
     }
   }, [ready, mapDivRef, map]);
 
