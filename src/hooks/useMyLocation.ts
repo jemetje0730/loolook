@@ -124,7 +124,7 @@ export function useMyLocation(map: any, mapDivRef: RefObject<HTMLDivElement>) {
 
           const loc = new kakao.maps.LatLng(latitude, longitude);
           map.setLevel(1);
-          map.panTo(loc);
+          map.setCenter(loc);
         },
         (err) => console.warn('Geolocation error:', err),
         { enableHighAccuracy: true },
