@@ -1,4 +1,3 @@
-// scripts/ingest_multi.ts
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
@@ -20,11 +19,19 @@ const sql = postgres(DATABASE_URL, { prepare: false });
 -----------------------------*/
 type ToiletCsvRow = {
   화장실명?: string;
+  건물명?: string; // seoul_toilets.csv
   소재지도로명주소?: string;
+  도로명주소?: string; // seoul_toilets.csv
   소재지지번주소?: string;
+  지번주소?: string; // seoul_toilets.csv
   WGS84위도?: string;
+  'y 좌표'?: string; // seoul_toilets.csv
+  위도?: string; // gyeongi_toilets.csv
   WGS84경도?: string;
+  'x 좌표'?: string; // seoul_toilets.csv
+  경도?: string; // gyeongi_toilets.csv
   구분?: string;
+  유형?: string; // seoul_toilets.csv
   전화번호?: string;
   개방시간?: string;
   개방시간상세?: string;
@@ -41,7 +48,14 @@ type ToiletCsvRow = {
 
   비상벨설치여부?: string;
   화장실입구CCTV설치유무?: string;
+  화장실입구CCTV설치여부?: string; // gyeongi_toilets.csv
   기저귀교환대유무?: string;
+
+  // seoul_toilets.csv 전용 (파이프 구분 형식)
+  '화장실 현황'?: string;           // "남자|여자|"
+  '장애인화장실 현황'?: string;      // "남자|여자|"
+  '편의시설 (기타설비)'?: string;    // "기저귀교환대(남)|기저귀교환대(여)|"
+  '안내표지'?: string;              // "비상벨(여)|비상벨(장애인_남)|출입구CCTV|"
 
   [k: string]: string | undefined;
 };
@@ -145,34 +159,73 @@ async function ingestCsv(file: { path: string; source: string }) {
   let invalidGeom = 0;
 
   for (const r of rows) {
-    const name = (r['화장실명'] ?? '').trim() || '공중화장실';
-    const road = (r['소재지도로명주소'] ?? '').trim();
-    const jibun = (r['소재지지번주소'] ?? '').trim();
+    // 이름 파싱 (건물명 우선, 없으면 화장실명)
+    const name = (r['건물명'] ?? r['화장실명'] ?? '').trim() || '공중화장실';
+
+    // 주소 파싱
+    const road = (r['도로명주소'] ?? r['소재지도로명주소'] ?? '').trim();
+    const jibun = (r['지번주소'] ?? r['소재지지번주소'] ?? '').trim();
     const rawAddress = road || jibun;
 
     if (!name || !rawAddress) continue;
 
     const address = cleanAddress(rawAddress);
 
-
-    const lat = Number((r['WGS84위도'] ?? '').trim());
-    const lng = Number((r['WGS84경도'] ?? '').trim());
+    // 좌표 파싱 (각 CSV 형식 지원)
+    const lat = Number((r['y 좌표'] ?? r['위도'] ?? r['WGS84위도'] ?? '').trim());
+    const lng = Number((r['x 좌표'] ?? r['경도'] ?? r['WGS84경도'] ?? '').trim());
     const hasValid = isValidKoreaCoord(lat, lng);
 
-    const category = (r['구분'] ?? '').trim() || null;
-    const phone = (r['전화번호'] ?? '').trim() || null;
-    const open_time = (r['개방시간상세'] ?? r['개방시간'] ?? '').trim() || null;
+    // 파이프(|) 제거 헬퍼 함수
+    const removePipes = (str: string) => str.replace(/\|/g, '').trim();
 
-    const male_toilet = toOorX(num(r['남성용-대변기수']) + num(r['남성용-소변기수']));
-    const female_toilet = toOorX(num(r['여성용-대변기수']));
-    const male_disabled = toOorX(num(r['남성용-장애인용대변기수']) + num(r['남성용-장애인용소변기수']));
-    const female_disabled = toOorX(num(r['여성용-장애인용대변기수']));
-    const male_child = toOorX(num(r['남성용-어린이용대변기수']) + num(r['남성용-어린이용소변기수']));
-    const female_child = toOorX(num(r['여성용-어린이용대변기수']));
+    const category = removePipes(r['유형'] ?? r['구분'] ?? '') || null;
+    const phone = removePipes(r['전화번호'] ?? '') || null;
+    const open_time = removePipes(r['개방시간상세'] ?? r['개방시간'] ?? '') || null;
 
-    const emergency_bell = toBool(r['비상벨설치여부']);
-    const cctv = toBool(r['화장실입구CCTV설치유무']);
-    const baby_change = toBool(r['기저귀교환대유무']);
+    // seoul_toilets.csv 형식인지 확인 (파이프 구분)
+    const isSeoulFormat = r['화장실 현황'] !== undefined;
+
+    let male_toilet: 'O' | 'X';
+    let female_toilet: 'O' | 'X';
+    let male_disabled: 'O' | 'X';
+    let female_disabled: 'O' | 'X';
+    let male_child: 'O' | 'X';
+    let female_child: 'O' | 'X';
+    let emergency_bell: boolean;
+    let cctv: boolean;
+    let baby_change: boolean;
+
+    if (isSeoulFormat) {
+      // seoul_toilets.csv 형식: 파이프(|) 구분
+      const toiletStatus = r['화장실 현황'] ?? '';
+      const disabledStatus = r['장애인화장실 현황'] ?? '';
+      const facilities = r['편의시설 (기타설비)'] ?? '';
+      const signs = r['안내표지'] ?? '';
+
+      male_toilet = toiletStatus.includes('남자') ? 'O' : 'X';
+      female_toilet = toiletStatus.includes('여자') ? 'O' : 'X';
+      male_disabled = disabledStatus.includes('남자') ? 'O' : 'X';
+      female_disabled = disabledStatus.includes('여자') ? 'O' : 'X';
+      male_child = 'X'; // seoul_toilets.csv에는 어린이 화장실 정보 없음
+      female_child = 'X';
+
+      emergency_bell = signs.includes('비상벨');
+      cctv = signs.includes('CCTV') || signs.includes('출입구CCTV');
+      baby_change = facilities.includes('기저귀교환대');
+    } else {
+      // public_toilets.csv 형식: 숫자
+      male_toilet = toOorX(num(r['남성용-대변기수']) + num(r['남성용-소변기수']));
+      female_toilet = toOorX(num(r['여성용-대변기수']));
+      male_disabled = toOorX(num(r['남성용-장애인용대변기수']) + num(r['남성용-장애인용소변기수']));
+      female_disabled = toOorX(num(r['여성용-장애인용대변기수']));
+      male_child = toOorX(num(r['남성용-어린이용대변기수']) + num(r['남성용-어린이용소변기수']));
+      female_child = toOorX(num(r['여성용-어린이용대변기수']));
+
+      emergency_bell = toBool(r['비상벨설치여부']);
+      cctv = toBool(r['화장실입구CCTV설치유무'] ?? r['화장실입구CCTV설치여부']);
+      baby_change = toBool(r['기저귀교환대유무']);
+    }
 
     // 이름+주소 fingerprint로 중복 방지
     const fpRaw = (name + '|' + address).toLowerCase();
@@ -238,18 +291,18 @@ async function ingestCsv(file: { path: string; source: string }) {
    여러 CSV ingest 설정
 -----------------------------*/
 const FILES: Array<{ path: string; source: string }> = [
+  // {
+  //   path: 'data/seoul_toilets.csv',
+  //   source: 'seoul_open_data_2025',
+  // },
+  // {
+  //   path: 'data/gyeongi_toilets.csv',
+  //   source: 'gyeonggi_open_data_2025',
+  // }
   {
-    path: 'data/public_toilets.csv',
-    source: 'seoul_open_data_main',
-  },
-  // {
-  //   path: 'data/public_toilets_extra.csv',
-  //   source: 'seoul_open_data_extra',
-  // },
-  // {
-  //   path: 'data/park_toilets.csv',
-  //   source: 'manual_park_import',
-  // },
+     path: 'data/incheon_toilets.csv',
+     source: 'incheon_open_data_2025',
+   }
 ];
 
 async function main() {

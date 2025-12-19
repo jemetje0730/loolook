@@ -14,6 +14,7 @@ export function useToiletMarkers(
   setSelected: (t: any) => void,
 ) {
   const geocodeCacheRef = useRef<Map<string, { lat: number; lng: number }>>(new Map());
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!map || !clusterer) return;
@@ -73,13 +74,18 @@ export function useToiletMarkers(
       abortController = new AbortController();
 
       try {
+        const bounds = map.getBounds();
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+
         const params = new URLSearchParams({
           public: '1',
-          mode: 'all',
+          mode: 'bounds',
+          swLat: sw.getLat().toString(),
+          swLng: sw.getLng().toString(),
+          neLat: ne.getLat().toString(),
+          neLng: ne.getLng().toString(),
         });
-        if (filters?.baby_change) params.set('baby_change', '1');
-        if (filters?.free) params.set('free', '1');
-        if (filters?.gender_neutral) params.set('gender_neutral', '1');
 
         const res = await fetch(`/api/toilets?${params.toString()}`, {
           signal: abortController.signal,
@@ -136,10 +142,25 @@ export function useToiletMarkers(
       }
     };
 
+    const debouncedFetchAndDraw = () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      fetchTimeoutRef.current = setTimeout(() => {
+        fetchAndDraw();
+      }, 300);
+    };
+
     fetchAndDraw();
+
+    const idleListener = kakao.maps.event.addListener(map, 'idle', debouncedFetchAndDraw);
 
     return () => {
       abortController?.abort();
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      kakao.maps.event.removeListener(idleListener);
     };
   }, [
     map,
