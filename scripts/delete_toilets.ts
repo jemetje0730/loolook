@@ -11,12 +11,39 @@ if (!DATABASE_URL) {
   console.error('[delete-toilets] ❌ DATABASE_URL 누락 (.env.local 확인)');
   process.exit(1);
 }
+
 const sql = postgres(DATABASE_URL, { prepare: false });
 
 type DeleteRow = {
   name: string;
-  address: string; // 부분 매칭용
+  address: string;
 };
+
+function normalizeName(input: string): string {
+  return (input ?? '').replace(/\s+/g, '').trim();
+}
+
+/**
+ * 주소를 "매칭 친화적"으로 정규화해서 짧게 만듦
+ * - 괄호/따옴표 제거
+ * - 쉼표 뒤 부가설명 제거
+ * - 가능하면 "도로명(대로/로/길)+번지" 또는 "지번(동 1234-56)"까지만 추출
+ * - 마지막에 공백 제거 (DB도 공백 제거해서 비교)
+ */
+function normalizeAddress(input: string): string {
+  if (!input) return '';
+
+  let s = input.replace(/"/g, '').replace(/\([^)]*\)/g, ' ').trim();
+  s = s.split(',')[0].replace(/\s+/g, ' ').trim();
+
+  const roadMatch = s.match(/(.+?(?:대로|로|길)\s*\d+(?:-\d+)?)/);
+  if (roadMatch?.[1]) return roadMatch[1].replace(/\s+/g, '').trim();
+
+  const jibunMatch = s.match(/(.+?\s\d{3,5}-\d+)/);
+  if (jibunMatch?.[1]) return jibunMatch[1].replace(/\s+/g, '').trim();
+
+  return s.replace(/\s+/g, '').trim();
+}
 
 async function main() {
   console.log('🚀 [delete-toilets] 시작');
@@ -36,56 +63,49 @@ async function main() {
 
   console.log(`[delete-toilets] CSV 로딩 완료: ${rows.length}개`);
 
+  let totalDeleted = 0;
+
   for (const row of rows) {
     const { name, address } = row;
 
-    if (!name || !address) {
-      console.log('[delete-toilets] ⚠ name 또는 address 누락 → 스킵:', row);
-      continue;
-    }
+    if (!name || !address) continue;
 
-    console.log('\n========================================');
-    console.log(
-      `[delete-toilets] 삭제 대상: name="${name}", address LIKE "%${address}%"`
-    );
+    const nameNorm = normalizeName(name);
+    const addrNorm = normalizeAddress(address);
+    const addrPattern = `%${addrNorm}%`;
 
-    const addrPattern = `%${address}%`;
-
-    const before = await sql/*sql*/`
+    // ✅ "매칭 되는 것만" 출력/삭제: name(공백제거 동일) + address(공백제거 포함)
+    const matched = await sql/*sql*/`
       SELECT id, name, address
       FROM toilets
-      WHERE name = ${name}
-        AND address ILIKE ${addrPattern}
+      WHERE regexp_replace(name, '\\s+', '', 'g') = ${nameNorm}
+        AND regexp_replace(address, '\\s+', '', 'g') ILIKE ${addrPattern}
     `;
 
-    if (before.length === 0) {
-      console.log('[delete-toilets] 🔎 매칭되는 행이 없습니다. (스킵)');
-      continue;
+    if (matched.length === 0) continue;
+
+    console.log('\n========================================');
+    console.log(`[delete-toilets] 삭제 대상: "${name}"`);
+    console.log(`[delete-toilets]  - nameNorm : "${nameNorm}"`);
+    console.log(`[delete-toilets]  - addrNorm : "${addrNorm}"`);
+    console.log(`[delete-toilets]  - matched  : ${matched.length}개`);
+    for (const m of matched) {
+      console.log(`  - id=${m.id}, name="${m.name}", address="${m.address}"`);
     }
 
-    console.log(
-      `[delete-toilets] 삭제 예정 행 수: ${before.length}`,
-    );
-    for (const b of before) {
-      console.log(
-        `  - id=${b.id}, name="${b.name}", address="${b.address}"`,
-      );
-    }
-
-    const result = await sql/*sql*/`
+    const deleted = await sql/*sql*/`
       DELETE FROM toilets
-      WHERE name = ${name}
-        AND address ILIKE ${addrPattern}
+      WHERE regexp_replace(name, '\\s+', '', 'g') = ${nameNorm}
+        AND regexp_replace(address, '\\s+', '', 'g') ILIKE ${addrPattern}
       RETURNING id
     `;
 
-    console.log(
-      `[delete-toilets] ✅ 실제 삭제된 행 수: ${result.length}`,
-    );
+    console.log(`[delete-toilets] ✅ deleted: ${deleted.length}개`);
+    totalDeleted += deleted.length;
   }
 
   await sql.end();
-  console.log('\n🎉 [delete-toilets] 전체 완료');
+  console.log(`\n🎉 [delete-toilets] 전체 완료 (deleted=${totalDeleted})`);
 }
 
 main().catch((e) => {
