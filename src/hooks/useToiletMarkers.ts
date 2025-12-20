@@ -107,9 +107,24 @@ export function useToiletMarkers(
             const pos = await getValidLatLng(t);
             if (!pos) return null;
 
+            // SVG 데이터 URL로 작은 커스텀 마커 생성 (기본 마커와 동일한 모양)
+            const svgString = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" viewBox="0 0 29 42">
+                <path fill="#1a73e8" d="M14.5,0C6.5,0,0,6.5,0,14.5C0,25.2,14.5,42,14.5,42S29,25.2,29,14.5C29,6.5,22.5,0,14.5,0z"/>
+                <circle fill="#FFF" cx="14.5" cy="14.5" r="7"/>
+              </svg>
+            `.trim();
+
+            const svgDataUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString);
+            const imageSize = new kakao.maps.Size(20, 30);
+            const imageOption = { offset: new kakao.maps.Point(10, 30) };
+
+            const markerImage = new kakao.maps.MarkerImage(svgDataUrl, imageSize, imageOption);
+
             const m = new kakao.maps.Marker({
               position: new kakao.maps.LatLng(pos.lat, pos.lng),
               clickable: true,
+              image: markerImage,
             });
 
             kakao.maps.event.addListener(m, 'click', () => {
