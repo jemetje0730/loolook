@@ -48,9 +48,9 @@ function normalizeAddress(input: string): string {
 async function main() {
   console.log('🚀 [delete-toilets] 시작');
 
-  const csvPath = path.join(process.cwd(), 'data/delete_targets.csv');
+  const csvPath = path.join(process.cwd(), 'data/targets/delete_targets.csv');
   if (!fs.existsSync(csvPath)) {
-    console.error('[delete-toilets] ❌ data/delete_targets.csv 파일이 없습니다.');
+    console.error('[delete-toilets] ❌ data/targets/delete_targets.csv 파일이 없습니다.');
     process.exit(1);
   }
 

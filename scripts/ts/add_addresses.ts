@@ -168,9 +168,9 @@ async function main() {
     DATABASE_URL.replace(/\/\/([^:]+):?[^@]*@/, '//$1:****@'),
   );
 
-  const csvPath = path.join(process.cwd(), 'data/add_targets.csv');
+  const csvPath = path.join(process.cwd(), 'data/targets/add_targets.csv');
   if (!fs.existsSync(csvPath)) {
-    console.error('[add-addresses] ❌ data/add_targets.csv 파일이 없습니다.');
+    console.error('[add-addresses] ❌ data/targets/add_targets.csv 파일이 없습니다.');
     process.exit(1);
   }
 
