@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "about": "About",
+    "contact": "Contact",
+    "report": "Report"
+  },
+  "metadata": {
+    "title": "LooLook - Find Public Restrooms",
+    "description": "Public restroom location service in Korea"
+  },
+  "detail": {
+    "maleToilet": "Male Toilet",
+    "femaleToilet": "Female Toilet",
+    "maleDisabled": "Male Disabled",
+    "femaleDisabled": "Female Disabled",
+    "babyChange": "Baby Changing Station",
+    "emergencyBell": "Emergency Bell",
+    "cctv": "CCTV",
+    "openTime": "Opening Hours",
+    "phone": "Phone",
+    "noInfo": "No information",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "language": {
+    "korean": "한국어",
+    "english": "English",
+    "chinese": "中文",
+    "japanese": "日本語"
+  },
+  "filter": {
+    "maleToilet": "Male Restroom",
+    "femaleToilet": "Female Restroom",
+    "babyChange": "Baby Changing",
+    "disabledToilet": "Accessible Restroom"
+  },
+  "search": {
+    "placeholder": "e.g., Enter an address",
+    "button": "Search"
+  },
+  "feedback": {
+    "title": "Feedback & Report",
+    "subtitle": "Found a new restroom? Have incorrect information or suggestions?\nYour reports help us create a better map.",
+    "categoryLabel": "What would you like to report?",
+    "toiletReport": "Report Restroom",
+    "correction": "Correct Information",
+    "bug": "Report Bug",
+    "suggestion": "Suggest Feature",
+    "locationLabel": "Location (Address or Landmark)",
+    "locationPlaceholder": "e.g., Exit 3 of Gangnam Station, Seoul",
+    "contentLabel": "Details",
+    "emailLabel": "Email (Optional)",
+    "emailPlaceholder": "Leave your email if you'd like a response.",
+    "submitButton": "Submit Report",
+    "submitting": "Submitting...",
+    "successMessage": "Thank you for your report! We'll review and update accordingly.",
+    "errorMessage": "Failed to submit. Please try again.",
+    "placeholderToiletReport": "e.g., There is a public restroom near Exit 3 of Gangnam Station.\nLocation: B396 Gangnam-daero, Gangnam-gu, Seoul\nFacilities: Gender-separated, accessible restroom available",
+    "placeholderCorrection": "e.g., The restroom at Exit 1 of Gangnam Station is currently under construction.",
+    "placeholderOther": "Please feel free to share your thoughts."
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "about": "关于",
+    "contact": "联系",
+    "report": "举报"
+  },
+  "metadata": {
+    "title": "LooLook - 查找公共厕所",
+    "description": "韩国公共厕所位置服务"
+  },
+  "detail": {
+    "maleToilet": "男厕所",
+    "femaleToilet": "女厕所",
+    "maleDisabled": "男性残疾人专用",
+    "femaleDisabled": "女性残疾人专用",
+    "babyChange": "婴儿换尿布台",
+    "emergencyBell": "紧急铃",
+    "cctv": "监控",
+    "openTime": "开放时间",
+    "phone": "电话",
+    "noInfo": "无信息",
+    "yes": "是",
+    "no": "否"
+  },
+  "language": {
+    "korean": "한국어",
+    "english": "English",
+    "chinese": "中文",
+    "japanese": "日本語"
+  },
+  "filter": {
+    "maleToilet": "男厕所",
+    "femaleToilet": "女厕所",
+    "babyChange": "换尿布台",
+    "disabledToilet": "无障碍厕所"
+  },
+  "search": {
+    "placeholder": "例如：输入地址",
+    "button": "搜索"
+  },
+  "feedback": {
+    "title": "反馈与举报",
+    "subtitle": "发现了新的厕所？有错误信息或改进建议？\n您的举报帮助我们创建更好的地图。",
+    "categoryLabel": "您想举报什么？",
+    "toiletReport": "举报厕所",
+    "correction": "更正信息",
+    "bug": "报告错误",
+    "suggestion": "功能建议",
+    "locationLabel": "位置（地址或地标）",
+    "locationPlaceholder": "例如：江南站3号出口，首尔",
+    "contentLabel": "详细信息",
+    "emailLabel": "电子邮件（可选）",
+    "emailPlaceholder": "如需回复，请留下您的电子邮件。",
+    "submitButton": "提交举报",
+    "submitting": "提交中...",
+    "successMessage": "感谢您的举报！我们将审核并更新。",
+    "errorMessage": "提交失败。请重试。",
+    "placeholderToiletReport": "例如：江南站3号出口附近有公共厕所。\n位置：首尔江南区江南大路地下396号\n设施：男女分开，有无障碍厕所",
+    "placeholderCorrection": "例如：江南站1号出口的厕所目前正在施工中。",
+    "placeholderOther": "请随意分享您的想法。"
+  }
+}
