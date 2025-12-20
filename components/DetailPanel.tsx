@@ -11,11 +11,14 @@ export default function DetailPanel() {
   const [translatedName, setTranslatedName] = useState<string>('');
   const [translatedAddress, setTranslatedAddress] = useState<string>('');
   const [translatedCategory, setTranslatedCategory] = useState<string>('');
-  const [isTranslating, setIsTranslating] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   // 한국어가 아닌 경우 텍스트를 영어로 번역
   useEffect(() => {
-    if (!selected) return;
+    if (!selected) {
+      setIsReady(false);
+      return;
+    }
 
     const { name, address, category } = selected;
 
@@ -24,11 +27,12 @@ export default function DetailPanel() {
       setTranslatedName(name || '');
       setTranslatedAddress(address || '');
       setTranslatedCategory(category || '');
-      setIsTranslating(false);
+      setIsReady(true);
       return;
     }
 
-    setIsTranslating(true);
+    // 번역 시작 - 아직 준비 안됨
+    setIsReady(false);
 
     // 영어, 중국어, 일본어는 영어로 번역
     const translateToEnglish = async (text: string): Promise<string> => {
@@ -60,11 +64,12 @@ export default function DetailPanel() {
       setTranslatedName(translatedNameResult);
       setTranslatedAddress(translatedAddressResult);
       setTranslatedCategory(translatedCategoryResult);
-      setIsTranslating(false);
+      setIsReady(true);
     });
   }, [locale, selected]);
 
-  if (!selected) return null;
+  // 선택된 항목이 없거나 번역 준비가 안되면 아무것도 렌더링하지 않음
+  if (!selected || !isReady) return null;
 
   const {
     name, address, category, phone, open_time,
@@ -81,8 +86,10 @@ export default function DetailPanel() {
     // 영어, 중국어, 일본어는 한국어 데이터를 영어로 변환
     const translations: { [key: string]: string } = {
       '연중무휴': 'Open 24/7',
+      '상시(24시간)': 'Open 24/7',
       '정보 없음': 'No information',
       '정보없음': 'No information',
+      '정시(영업시작~종료)': 'During business hours',
     };
 
     return translations[value] || value;
@@ -105,12 +112,6 @@ export default function DetailPanel() {
   return (
     <div className="absolute left-4 right-4 bottom-4 md:left-1/2 md:translate-x-[-50%] md:right-auto md:w-[900px] z-40">
       <div className="rounded-2xl bg-white/95 shadow-2xl p-6">
-        {isTranslating ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="text-gray-500">Loading...</div>
-          </div>
-        ) : (
-          <>
         <div className="flex justify-between items-start gap-4">
           <div>
             <h2 className="text-xl font-semibold">{displayName}</h2>
@@ -134,8 +135,6 @@ export default function DetailPanel() {
           <div><strong>{t('openTime')}:</strong> {translateValue(open_time) || (locale === 'ko' ? '정보 없음' : 'No information')}</div>
           <div><strong>{t('phone')}:</strong> {phone || (locale === 'ko' ? '정보 없음' : 'No information')}</div>
         </div>
-          </>
-        )}
       </div>
     </div>
   );

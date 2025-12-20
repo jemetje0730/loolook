@@ -134,8 +134,8 @@ export default function MapView() {
 
   return (
     <div className="relative w-full h-full">
-      {/* 🔍 상단 검색 + 필터 UI (기존과 동일한 모양) */}
-      <div className="absolute z-10 top-4 left-1/2 -translate-x-1/2 w-[min(680px,92vw)]">
+      {/* 🔍 상단 검색 + 필터 UI - 모바일 최적화 */}
+      <div className="absolute z-10 top-2 sm:top-4 left-1/2 -translate-x-1/2 w-[min(680px,95vw)] px-2 sm:px-0">
         <div className="flex items-center gap-2 rounded-2xl bg-white/90 backdrop-blur px-3 py-2 shadow">
           <input
             type="text"
@@ -149,19 +149,19 @@ export default function MapView() {
           />
           <button
             onClick={() => handleSearch(query)}
-            className="shrink-0 px-3 py-1.5 rounded-xl bg-black text-white text-sm"
+            className="shrink-0 px-2.5 sm:px-3 py-1.5 rounded-xl bg-black text-white text-xs sm:text-sm whitespace-nowrap"
           >
             {t('search.button')}
           </button>
         </div>
 
-        {/* 필터 버튼 영역 */}
-        <div className="flex justify-center mt-3 gap-2 overflow-x-auto">
+        {/* 필터 버튼 영역 - 모바일 스크롤 최적화 */}
+        <div className="flex justify-center mt-2 sm:mt-3 gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {FILTER_BUTTONS.map((f) => (
             <button
               key={f.key}
               onClick={() => toggleFilter(f.key)}
-              className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition ${
+              className={`shrink-0 w-[85px] sm:w-[100px] py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition ${
                 activeFilters.includes(f.key)
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-800 border border-gray-200'
