@@ -29,10 +29,10 @@
     "japanese": "日本語"
   },
   "filter": {
-    "maleToilet": "男厕所",
-    "femaleToilet": "女厕所",
-    "babyChange": "换尿布台",
-    "disabledToilet": "无障碍厕所"
+    "maleToilet": "男厕",
+    "femaleToilet": "女厕",
+    "babyChange": "婴儿",
+    "disabledToilet": "残疾人"
   },
   "search": {
     "placeholder": "例如：输入地址",

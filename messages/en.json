@@ -29,10 +29,10 @@
     "japanese": "日本語"
   },
   "filter": {
-    "maleToilet": "Male Restroom",
-    "femaleToilet": "Female Restroom",
-    "babyChange": "Baby Changing",
-    "disabledToilet": "Accessible Restroom"
+    "maleToilet": "Men",
+    "femaleToilet": "Women",
+    "babyChange": "Diaper",
+    "disabledToilet": "Accessible"
   },
   "search": {
     "placeholder": "e.g., Enter an address",
