@@ -300,22 +300,22 @@ async function ingestCsv(file: { path: string; source: string }) {
    여러 CSV ingest 설정
 -----------------------------*/
 const FILES: Array<{ path: string; source: string }> = [
-  // {
-  //   path: 'data/toilets/seoul_toilets.csv',
-  //   source: 'seoul_open_data_2025',
-  // },
-  // {
-  //   path: 'data/toilets/gyeongi_toilets.csv',
-  //   source: 'gyeonggi_open_data_2025',
-  // }
-  // {
-  //    path: 'data/toilets/incheon_toilets.csv',
-  //    source: 'incheon_open_data_2025',
-  //  },
   {
-     path: 'data/toilets/daegu_toilets.csv',
-     source: 'daegu_open_data_2025',
-   }
+    path: 'data/toilets/seoul_toilets.csv',
+    source: 'seoul_open_data_2025',
+  },
+  {
+    path: 'data/toilets/gyeongi_toilets.csv',
+    source: 'gyeonggi_open_data_2025',
+  },
+  {
+    path: 'data/toilets/incheon_toilets.csv',
+    source: 'incheon_open_data_2025',
+  },
+  {
+    path: 'data/toilets/daegu_toilets.csv',
+    source: 'daegu_open_data_2025',
+  }
 ];
 
 async function main() {
