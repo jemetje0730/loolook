@@ -49,11 +49,11 @@ export default function LanguageSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-3 py-1 rounded-full border hover:bg-gray-100 flex items-center gap-1"
+        className="text-sm font-medium text-gray-700 hover:text-black flex items-center gap-1"
         aria-label="언어 변경"
       >
-        <span className="text-sm">🌐</span>
-        <span className="text-sm font-medium">{languageLabels[locale as keyof typeof languageLabels]}</span>
+        <span>🌐</span>
+        <span>{languageLabels[locale as keyof typeof languageLabels]}</span>
       </button>
 
       {isOpen && (

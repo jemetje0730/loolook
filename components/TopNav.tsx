@@ -18,17 +18,23 @@ export default function TopNav() {
           LooLook <span className="text-rose-500"></span>
         </Link>
 
-        {/* 우측 네비게이션 - 모바일 최적화 */}
-        <nav className="flex items-center gap-2 sm:gap-6 text-xs sm:text-sm font-medium text-gray-700">
-          {/* About & Contact는 데스크톱에만 표시 */}
+        {/* 우측 네비게이션 */}
+        <nav className="flex items-center gap-4 text-sm font-medium text-gray-700">
+          {/* 데스크톱: 소개 | 문의 | 제보하기 | 언어 */}
           <Link href={`/${locale}/about`} className="hidden md:block hover:text-black">
             {t('about')}
           </Link>
           <Link href={`/${locale}/contact`} className="hidden md:block hover:text-black">
             {t('contact')}
           </Link>
+          <Link href={`/${locale}/feedback`} className="hidden md:block hover:text-black">
+            {t('report')}
+          </Link>
+          <div className="hidden md:block">
+            <LanguageSwitcher />
+          </div>
 
-          {/* 모바일 햄버거 메뉴 버튼 */}
+          {/* 모바일: 햄버거 + 언어 */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
@@ -43,14 +49,9 @@ export default function TopNav() {
             </svg>
           </button>
 
-          {/* Report 버튼 - 모바일에서 padding 줄임 */}
-          <Link
-            href={`/${locale}/feedback`}
-            className="px-2 py-1 sm:px-3 sm:py-1 rounded-full border hover:bg-gray-100 whitespace-nowrap"
-          >
-            {t('report')}
-          </Link>
-          <LanguageSwitcher />
+          <div className="md:hidden">
+            <LanguageSwitcher />
+          </div>
         </nav>
       </div>
 
@@ -71,6 +72,13 @@ export default function TopNav() {
               onClick={() => setMobileMenuOpen(false)}
             >
               {t('contact')}
+            </Link>
+            <Link
+              href={`/${locale}/feedback`}
+              className="px-4 py-3 hover:bg-gray-50 text-sm text-gray-700"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t('report')}
             </Link>
           </div>
         </div>
