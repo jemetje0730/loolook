@@ -24,17 +24,24 @@ export default function TopNav() {
           <Link href={`/${locale}/about`} className="hidden md:block hover:text-black">
             {t('about')}
           </Link>
+          <span className="hidden md:block text-gray-300">|</span>
           <Link href={`/${locale}/contact`} className="hidden md:block hover:text-black">
             {t('contact')}
           </Link>
+          <span className="hidden md:block text-gray-300">|</span>
           <Link href={`/${locale}/feedback`} className="hidden md:block hover:text-black">
             {t('report')}
           </Link>
+          <span className="hidden md:block text-gray-300">|</span>
           <div className="hidden md:block">
             <LanguageSwitcher />
           </div>
 
-          {/* 모바일: 햄버거 + 언어 */}
+          {/* 모바일: 언어 + 햄버거 */}
+          <div className="md:hidden">
+            <LanguageSwitcher />
+          </div>
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
@@ -48,10 +55,6 @@ export default function TopNav() {
               )}
             </svg>
           </button>
-
-          <div className="md:hidden">
-            <LanguageSwitcher />
-          </div>
         </nav>
       </div>
 
