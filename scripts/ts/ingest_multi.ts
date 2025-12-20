@@ -6,9 +6,13 @@ import path from 'path';
 import postgres from 'postgres';
 import { parse } from 'csv-parse/sync';
 
-const DATABASE_URL = process.env.DATABASE_URL!;
+// USE_PRODUCTION=true 로 실행하면 PRODUCTION_DB 사용, 아니면 DATABASE_URL 사용
+const DATABASE_URL = process.env.USE_PRODUCTION === 'true'
+  ? process.env.PRODUCTION_DB!
+  : process.env.DATABASE_URL!;
+
 if (!DATABASE_URL) {
-  console.error('[ingest-multi] ❌ DATABASE_URL 누락 (.env.local 확인)');
+  console.error('[ingest-multi] ❌ DATABASE_URL 또는 PRODUCTION_DB 누락 (.env.local 확인)');
   process.exit(1);
 }
 
@@ -152,7 +156,7 @@ async function ensureSchema() {
 }
 
 /* ----------------------------
-   CSV 1개 ingest 함수
+   CSV 1개 ingest 함수 (배치 INSERT 방식)
 -----------------------------*/
 async function ingestCsv(file: { path: string; source: string }) {
   const full = path.join(process.cwd(), file.path);
@@ -166,6 +170,12 @@ async function ingestCsv(file: { path: string; source: string }) {
 
   let success = 0;
   let invalidGeom = 0;
+
+  // 배치 크기 설정
+  const BATCH_SIZE = 200;
+  const batches: any[][] = [];
+  let currentBatch: any[] = [];
+  const seenInBatch = new Set<string>(); // 배치 내 중복 체크
 
   for (const r of rows) {
     // 이름 파싱 (건물명 우선, 없으면 화장실명, daegu는 TOILET_NM 또는 MGC_NM)
@@ -199,8 +209,6 @@ async function ingestCsv(file: { path: string; source: string }) {
     let female_toilet: 'O' | 'X';
     let male_disabled: 'O' | 'X';
     let female_disabled: 'O' | 'X';
-    let male_child: 'O' | 'X';
-    let female_child: 'O' | 'X';
     let emergency_bell: boolean;
     let cctv: boolean;
     let baby_change: boolean;
@@ -216,8 +224,6 @@ async function ingestCsv(file: { path: string; source: string }) {
       female_toilet = toiletStatus.includes('여자') ? 'O' : 'X';
       male_disabled = disabledStatus.includes('남자') ? 'O' : 'X';
       female_disabled = disabledStatus.includes('여자') ? 'O' : 'X';
-      male_child = 'X'; // seoul_toilets.csv에는 어린이 화장실 정보 없음
-      female_child = 'X';
 
       emergency_bell = signs.includes('비상벨');
       cctv = signs.includes('CCTV') || signs.includes('출입구CCTV');
@@ -228,8 +234,6 @@ async function ingestCsv(file: { path: string; source: string }) {
       female_toilet = toOorX(num(r['여성용-대변기수']));
       male_disabled = toOorX(num(r['남성용-장애인용대변기수']) + num(r['남성용-장애인용소변기수']));
       female_disabled = toOorX(num(r['여성용-장애인용대변기수']));
-      male_child = toOorX(num(r['남성용-어린이용대변기수']) + num(r['남성용-어린이용소변기수']));
-      female_child = toOorX(num(r['여성용-어린이용대변기수']));
 
       emergency_bell = toBool(r['비상벨설치여부']);
       cctv = toBool(r['화장실입구CCTV설치유무'] ?? r['화장실입구CCTV설치여부']);
@@ -239,31 +243,100 @@ async function ingestCsv(file: { path: string; source: string }) {
     // 이름+주소 fingerprint로 중복 방지
     const fpRaw = (name + '|' + address).toLowerCase();
 
-    await sql/*sql*/`
+    // 배치 내 중복 체크 (같은 배치에 동일한 fp가 있으면 스킵)
+    if (seenInBatch.has(fpRaw)) {
+      continue;
+    }
+
+    if (!hasValid) invalidGeom++;
+
+    // 배치에 데이터 추가
+    currentBatch.push({
+      name,
+      address,
+      source: file.source,
+      is_public: true,
+      geom: hasValid ? sql`ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography` : null,
+      fp: sql`md5(${fpRaw})`,
+      category,
+      phone,
+      open_time,
+      male_toilet,
+      female_toilet,
+      male_disabled,
+      female_disabled,
+      emergency_bell,
+      cctv,
+      baby_change,
+      hasValid,
+      lat,
+      lng,
+      fpRaw,
+    });
+    seenInBatch.add(fpRaw);
+
+    // 배치가 가득 차면 batches에 추가하고 새 배치 시작
+    if (currentBatch.length >= BATCH_SIZE) {
+      batches.push(currentBatch);
+      currentBatch = [];
+      seenInBatch.clear(); // 새 배치를 위해 Set 초기화
+    }
+  }
+
+  // 남은 데이터 추가
+  if (currentBatch.length > 0) {
+    batches.push(currentBatch);
+  }
+
+  // 배치별로 INSERT 실행 (진짜 배치 INSERT 방식)
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    console.log(`   배치 ${i + 1}/${batches.length} (${batch.length}개 행) 처리 중...`);
+
+    // VALUES 절 동적 생성
+    const valuesClauses = batch.map((_, idx) => {
+      const offset = idx * 18;
+      return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4},
+              CASE WHEN $${offset + 5} THEN ST_SetSRID(ST_MakePoint($${offset + 6}, $${offset + 7}), 4326)::geography ELSE NULL END,
+              md5($${offset + 8}), $${offset + 9}, $${offset + 10}, $${offset + 11},
+              $${offset + 12}, $${offset + 13}, $${offset + 14}, $${offset + 15}, $${offset + 16}, $${offset + 17}, $${offset + 18})`;
+    }).join(',\n');
+
+    const params: any[] = [];
+    for (const b of batch) {
+      const fpRaw = (b.name + '|' + b.address).toLowerCase();
+      params.push(
+        b.name,
+        b.address,
+        b.source,
+        b.is_public,
+        b.hasValid,
+        b.lng,
+        b.lat,
+        fpRaw,
+        b.category,
+        b.phone,
+        b.open_time,
+        b.male_toilet,
+        b.female_toilet,
+        b.male_disabled,
+        b.female_disabled,
+        b.emergency_bell,
+        b.cctv,
+        b.baby_change
+      );
+    }
+
+    // sql.unsafe를 사용하여 동적 SQL 실행
+    await sql.unsafe(`
       INSERT INTO toilets (
         name, address, source, is_public, geom, fp,
         category, phone, open_time,
         male_toilet, female_toilet,
         male_disabled, female_disabled,
-        male_child, female_child,
         emergency_bell, cctv, baby_change
       )
-      VALUES (
-        ${name},
-        ${address},
-        ${file.source},
-        TRUE,
-        CASE WHEN ${hasValid}
-          THEN ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
-          ELSE NULL
-        END,
-        md5(${fpRaw}),
-        ${category}, ${phone}, ${open_time},
-        ${male_toilet}, ${female_toilet},
-        ${male_disabled}, ${female_disabled},
-        ${male_child}, ${female_child},
-        ${emergency_bell}, ${cctv}, ${baby_change}
-      )
+      VALUES ${valuesClauses}
       ON CONFLICT (fp) DO UPDATE SET
         name           = EXCLUDED.name,
         address        = EXCLUDED.address,
@@ -275,22 +348,13 @@ async function ingestCsv(file: { path: string; source: string }) {
         female_toilet  = EXCLUDED.female_toilet,
         male_disabled  = EXCLUDED.male_disabled,
         female_disabled= EXCLUDED.female_disabled,
-        male_child     = EXCLUDED.male_child,
-        female_child   = EXCLUDED.female_child,
         emergency_bell = EXCLUDED.emergency_bell,
         cctv           = EXCLUDED.cctv,
         baby_change    = EXCLUDED.baby_change,
-        geom = COALESCE(
-          toilets.geom,
-          CASE WHEN ${hasValid}
-            THEN ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
-            ELSE NULL
-          END
-        )
-    `;
+        geom = COALESCE(toilets.geom, EXCLUDED.geom)
+    `, params);
 
-    if (!hasValid) invalidGeom++;
-    success++;
+    success += batch.length;
   }
 
   return { total: rows.length, success, invalidGeom };

@@ -68,8 +68,8 @@ export default function DetailPanel() {
     });
   }, [locale, selected]);
 
-  // 선택된 항목이 없거나 번역 준비가 안되면 아무것도 렌더링하지 않음
-  if (!selected || !isReady) return null;
+  // 선택된 항목이 없으면 아무것도 렌더링하지 않음
+  if (!selected) return null;
 
   const {
     name, address, category, phone, open_time,
@@ -111,14 +111,24 @@ export default function DetailPanel() {
 
   return (
     <div className="absolute left-4 right-4 bottom-4 md:left-1/2 md:translate-x-[-50%] md:right-auto md:w-[900px] z-40">
-      <div className="rounded-2xl bg-white/95 shadow-2xl p-6">
+      <div className="rounded-2xl bg-white/95 shadow-2xl p-6 relative">
+        {/* 번역 로딩 오버레이 */}
+        {!isReady && locale !== 'ko' && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-50">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-600">Translating...</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between items-start gap-4">
-          <div>
+          <div className="flex-1 min-w-0">
             <h2 className="text-xl font-semibold">{displayName}</h2>
             <p className="text-sm text-gray-600">{displayAddress}</p>
             {displayCategory && <p className="text-xs text-gray-500 mt-1">{displayCategory}</p>}
           </div>
-          <button onClick={() => setSelected(null)} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">✖</button>
+          <button onClick={() => setSelected(null)} className="shrink-0 p-2 rounded-full bg-gray-100 hover:bg-gray-200">✖</button>
         </div>
 
         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
