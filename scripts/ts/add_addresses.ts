@@ -266,7 +266,7 @@ async function main() {
         emergency_bell = COALESCE(EXCLUDED.emergency_bell, toilets.emergency_bell),
         cctv           = COALESCE(EXCLUDED.cctv, toilets.cctv),
         baby_change    = COALESCE(EXCLUDED.baby_change, toilets.baby_change),
-        geom           = COALESCE(toilets.geom, EXCLUDED.geom)
+        geom           = EXCLUDED.geom
     `;
 
     console.log('[add-addresses] ✅ 추가/업데이트 완료');
