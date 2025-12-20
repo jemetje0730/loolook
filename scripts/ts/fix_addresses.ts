@@ -68,9 +68,9 @@ async function geocodeVWorld(address: string, type: 'road' | 'parcel') {
 }
 
 async function main() {
-  const csvPath = path.join(process.cwd(), 'data/fix_targets.csv');
+  const csvPath = path.join(process.cwd(), 'data/targets/fix_targets.csv');
   if (!fs.existsSync(csvPath)) {
-    console.error('[fix-addresses] ❌ data/fix_targets.csv 파일이 없습니다.');
+    console.error('[fix-addresses] ❌ data/targets/fix_targets.csv 파일이 없습니다.');
     process.exit(1);
   }
 

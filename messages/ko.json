@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "about": "소개",
+    "contact": "문의",
+    "report": "제보하기"
+  },
+  "metadata": {
+    "title": "LooLook - 공중화장실 찾기",
+    "description": "전국 공중화장실 위치 정보 서비스"
+  },
+  "detail": {
+    "maleToilet": "남성 화장실",
+    "femaleToilet": "여성 화장실",
+    "maleDisabled": "남성 장애인용",
+    "femaleDisabled": "여성 장애인용",
+    "babyChange": "기저귀 교환대",
+    "emergencyBell": "비상벨",
+    "cctv": "CCTV",
+    "openTime": "개방시간",
+    "phone": "전화번호",
+    "noInfo": "정보 없음",
+    "yes": "O",
+    "no": "X"
+  },
+  "language": {
+    "korean": "한국어",
+    "english": "English",
+    "chinese": "中文",
+    "japanese": "日本語"
+  },
+  "filter": {
+    "maleToilet": "남자화장실",
+    "femaleToilet": "여자화장실",
+    "babyChange": "기저귀교체",
+    "disabledToilet": "장애인화장실"
+  },
+  "search": {
+    "placeholder": "예: 주소를 입력하세요",
+    "button": "검색"
+  },
+  "about": {
+    "title": "About LooLook",
+    "subtitle": "누구나, 언제 어디서든,\n존엄하게 화장실을 이용할 권리가 있습니다.",
+    "totalToilets": "전체 화장실",
+    "publicToilets": "무료 개방 화장실",
+    "disabledToilets": "장애인 화장실",
+    "babyChange": "기저귀 교환대",
+    "projectTitle": "프로젝트 소개",
+    "projectDesc": "LooLook은 공공 데이터와 사용자 제보를 결합하여 가장 정확한 화장실 지도를 만드는 비영리 프로젝트입니다. 특히 장애인 접근성, 기저귀 교환대 유무 등 실질적으로 필요한 정보를 제공하는 데 집중합니다.",
+    "dataSourceTitle": "데이터 출처",
+    "dataSource1": "공공데이터포털 (Public Data Portal)",
+    "dataSource2": "OpenStreetMap Contributors",
+    "dataSource3": "LooLook 사용자 여러분의 소중한 제보"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "비즈니스 제안, 협업 요청, 파트너십 문의 등 무엇이든 환영합니다.",
+    "emailLabel": "Email",
+    "socialLabel": "Social",
+    "formEmailLabel": "이메일",
+    "formEmailPlaceholder": "답변 받으실 이메일",
+    "formMessageLabel": "메시지",
+    "formMessagePlaceholder": "내용을 입력해주세요.",
+    "submitButton": "메시지 보내기",
+    "submitting": "전송 중...",
+    "successMessage": "메시지가 전송되었습니다. 빠른 시일 내에 답변드리겠습니다!",
+    "errorMessage": "전송에 실패했습니다. 다시 시도해주세요."
+  },
+  "feedback": {
+    "title": "Feedback & Report",
+    "subtitle": "새로운 화장실을 발견하셨나요? 잘못된 정보가 있거나 개선할 점이 있다면 알려주세요.\n여러분의 제보가 더 나은 지도를 만듭니다.",
+    "categoryLabel": "어떤 내용인가요?",
+    "toiletReport": "화장실 제보",
+    "correction": "정보 수정",
+    "bug": "버그 신고",
+    "suggestion": "기능 제안",
+    "locationLabel": "위치 (주소 또는 랜드마크)",
+    "locationPlaceholder": "예: 강남역 3번 출구, 서울시 강남구 강남대로 396",
+    "contentLabel": "상세 내용",
+    "emailLabel": "이메일 (선택)",
+    "emailPlaceholder": "답변을 받고 싶으시다면 이메일을 남겨주세요.",
+    "submitButton": "제보하기",
+    "submitting": "전송 중...",
+    "successMessage": "제보해주셔서 감사합니다! 검토 후 반영하겠습니다.",
+    "errorMessage": "전송에 실패했습니다. 다시 시도해주세요.",
+    "placeholderToiletReport": "예: 강남역 3번 출구 근처에 공중화장실이 있습니다.\n위치: 서울시 강남구 강남대로 지하 396\n시설: 남녀 분리, 장애인 화장실 있음",
+    "placeholderCorrection": "예: 강남역 1번 출구 화장실이 현재 공사 중이라 사용할 수 없습니다.",
+    "placeholderOther": "자유롭게 내용을 적어주세요."
+  }
+}

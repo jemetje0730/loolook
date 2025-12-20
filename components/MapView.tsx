@@ -1,8 +1,14 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react';
-import DetailPanel from '@/components/DetailPanel';
+import dynamic from 'next/dynamic';
 import { useMapStore } from '@/store/useMapStore';
+import { useTranslations } from 'next-intl';
+
+// 🚀 DetailPanel을 동적 import로 최적화
+const DetailPanel = dynamic(() => import('@/components/DetailPanel'), {
+  ssr: false,
+});
 
 import { useKakaoLoader } from '@/src/hooks/useKakaoLoader';
 import { useKakaoMap } from '@/src/hooks/useKakaoMap';
@@ -19,15 +25,16 @@ declare global {
 /** ⚠️ 카카오 JS Key */
 const KAKAO_JS_KEY = '21b4298df1918600fd43c18a65d03b57';
 
-/** 상단 필터 버튼들 (기존과 동일) */
-const FILTER_BUTTONS = [
-  { key: 'male_toilet', label: '남자화장실' },
-  { key: 'female_toilet', label: '여자화장실' },
-  { key: 'baby_change', label: '기저귀교체' },
-  { key: 'male_disabled', label: '장애인화장실' },
-];
-
 export default function MapView() {
+  const t = useTranslations();
+
+  /** 상단 필터 버튼들 */
+  const FILTER_BUTTONS = [
+    { key: 'male_toilet', label: t('filter.maleToilet') },
+    { key: 'female_toilet', label: t('filter.femaleToilet') },
+    { key: 'baby_change', label: t('filter.babyChange') },
+    { key: 'male_disabled', label: t('filter.disabledToilet') },
+  ];
   const mapRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState('');
@@ -137,14 +144,14 @@ export default function MapView() {
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSearch(query);
             }}
-            placeholder="예: 주소를 입력하세요"
+            placeholder={t('search.placeholder')}
             className="w-full outline-none bg-transparent text-sm md:text-base"
           />
           <button
             onClick={() => handleSearch(query)}
             className="shrink-0 px-3 py-1.5 rounded-xl bg-black text-white text-sm"
           >
-            검색
+            {t('search.button')}
           </button>
         </div>
 

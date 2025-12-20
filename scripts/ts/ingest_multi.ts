@@ -57,6 +57,15 @@ type ToiletCsvRow = {
   '편의시설 (기타설비)'?: string;    // "기저귀교환대(남)|기저귀교환대(여)|"
   '안내표지'?: string;              // "비상벨(여)|비상벨(장애인_남)|출입구CCTV|"
 
+  // daegu_toilets.csv 전용
+  TOILET_NM?: string;   // 화장실명
+  MGC_NM?: string;      // 관리기관명
+  ADRES_DC?: string;    // 주소
+  TELNO_CN?: string;    // 전화번호
+  USGTM_DC?: string;    // 사용시간
+  LA?: string;          // 위도
+  LO?: string;          // 경도
+
   [k: string]: string | undefined;
 };
 
@@ -159,11 +168,11 @@ async function ingestCsv(file: { path: string; source: string }) {
   let invalidGeom = 0;
 
   for (const r of rows) {
-    // 이름 파싱 (건물명 우선, 없으면 화장실명)
-    const name = (r['건물명'] ?? r['화장실명'] ?? '').trim() || '공중화장실';
+    // 이름 파싱 (건물명 우선, 없으면 화장실명, daegu는 TOILET_NM 또는 MGC_NM)
+    const name = (r['건물명'] ?? r['화장실명'] ?? r['TOILET_NM'] ?? r['MGC_NM'] ?? '').trim() || '공중화장실';
 
     // 주소 파싱
-    const road = (r['도로명주소'] ?? r['소재지도로명주소'] ?? '').trim();
+    const road = (r['도로명주소'] ?? r['소재지도로명주소'] ?? r['ADRES_DC'] ?? '').trim();
     const jibun = (r['지번주소'] ?? r['소재지지번주소'] ?? '').trim();
     const rawAddress = road || jibun;
 
@@ -172,16 +181,16 @@ async function ingestCsv(file: { path: string; source: string }) {
     const address = cleanAddress(rawAddress);
 
     // 좌표 파싱 (각 CSV 형식 지원)
-    const lat = Number((r['y 좌표'] ?? r['위도'] ?? r['WGS84위도'] ?? '').trim());
-    const lng = Number((r['x 좌표'] ?? r['경도'] ?? r['WGS84경도'] ?? '').trim());
+    const lat = Number((r['y 좌표'] ?? r['위도'] ?? r['WGS84위도'] ?? r['LA'] ?? '').trim());
+    const lng = Number((r['x 좌표'] ?? r['경도'] ?? r['WGS84경도'] ?? r['LO'] ?? '').trim());
     const hasValid = isValidKoreaCoord(lat, lng);
 
     // 파이프(|) 제거 헬퍼 함수
     const removePipes = (str: string) => str.replace(/\|/g, '').trim();
 
     const category = removePipes(r['유형'] ?? r['구분'] ?? '') || null;
-    const phone = removePipes(r['전화번호'] ?? '') || null;
-    const open_time = removePipes(r['개방시간상세'] ?? r['개방시간'] ?? '') || null;
+    const phone = removePipes(r['전화번호'] ?? r['TELNO_CN'] ?? '') || null;
+    const open_time = removePipes(r['개방시간상세'] ?? r['개방시간'] ?? r['USGTM_DC'] ?? '') || null;
 
     // seoul_toilets.csv 형식인지 확인 (파이프 구분)
     const isSeoulFormat = r['화장실 현황'] !== undefined;
@@ -292,16 +301,20 @@ async function ingestCsv(file: { path: string; source: string }) {
 -----------------------------*/
 const FILES: Array<{ path: string; source: string }> = [
   // {
-  //   path: 'data/seoul_toilets.csv',
+  //   path: 'data/toilets/seoul_toilets.csv',
   //   source: 'seoul_open_data_2025',
   // },
   // {
-  //   path: 'data/gyeongi_toilets.csv',
+  //   path: 'data/toilets/gyeongi_toilets.csv',
   //   source: 'gyeonggi_open_data_2025',
   // }
+  // {
+  //    path: 'data/toilets/incheon_toilets.csv',
+  //    source: 'incheon_open_data_2025',
+  //  },
   {
-     path: 'data/incheon_toilets.csv',
-     source: 'incheon_open_data_2025',
+     path: 'data/toilets/daegu_toilets.csv',
+     source: 'daegu_open_data_2025',
    }
 ];
 

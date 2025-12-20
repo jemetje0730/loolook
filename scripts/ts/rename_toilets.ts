@@ -23,9 +23,9 @@ type RenameRow = {
 async function main() {
   console.log('🚀 [rename-toilets] 시작');
 
-  const csvPath = path.join(process.cwd(), 'data/rename_targets.csv');
+  const csvPath = path.join(process.cwd(), 'data/targets/rename_targets.csv');
   if (!fs.existsSync(csvPath)) {
-    console.error('[rename-toilets] ❌ data/rename_targets.csv 파일이 없습니다.');
+    console.error('[rename-toilets] ❌ data/targets/rename_targets.csv 파일이 없습니다.');
     process.exit(1);
   }
 

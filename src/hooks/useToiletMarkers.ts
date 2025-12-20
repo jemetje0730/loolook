@@ -96,42 +96,55 @@ export function useToiletMarkers(
         const toilets = Array.isArray(data) ? data : [];
         const filtered = toilets.filter((t: any) => matchesActiveFilters(t));
 
-        const markerPromises = filtered.map(async (t: any) => {
-          const pos = await getValidLatLng(t);
-          if (!pos) return null;
+        // 🚀 성능 최적화: 마커를 배치로 처리 (한번에 50개씩)
+        const BATCH_SIZE = 50;
+        const newMarkers: any[] = [];
 
-          const m = new kakao.maps.Marker({
-            position: new kakao.maps.LatLng(pos.lat, pos.lng),
-            clickable: true,
-          });
+        for (let i = 0; i < filtered.length; i += BATCH_SIZE) {
+          const batch = filtered.slice(i, i + BATCH_SIZE);
 
-          kakao.maps.event.addListener(m, 'click', () => {
-            setSelected({
-              id: t.id,
-              name: t.name,
-              address: t.address,
-              lat: pos.lat,
-              lng: pos.lng,
-              category: t.category ?? null,
-              phone: t.phone ?? null,
-              open_time: t.open_time ?? null,
-              male_toilet: t.male_toilet ?? null,
-              female_toilet: t.female_toilet ?? null,
-              male_disabled: t.male_disabled ?? null,
-              female_disabled: t.female_disabled ?? null,
-              male_child: t.male_child ?? null,
-              female_child: t.female_child ?? null,
-              emergency_bell: t.emergency_bell ?? null,
-              cctv: t.cctv ?? null,
-              baby_change: t.baby_change ?? null,
+          const markerPromises = batch.map(async (t: any) => {
+            const pos = await getValidLatLng(t);
+            if (!pos) return null;
+
+            const m = new kakao.maps.Marker({
+              position: new kakao.maps.LatLng(pos.lat, pos.lng),
+              clickable: true,
             });
+
+            kakao.maps.event.addListener(m, 'click', () => {
+              setSelected({
+                id: t.id,
+                name: t.name,
+                address: t.address,
+                lat: pos.lat,
+                lng: pos.lng,
+                category: t.category ?? null,
+                phone: t.phone ?? null,
+                open_time: t.open_time ?? null,
+                male_toilet: t.male_toilet ?? null,
+                female_toilet: t.female_toilet ?? null,
+                male_disabled: t.male_disabled ?? null,
+                female_disabled: t.female_disabled ?? null,
+                male_child: t.male_child ?? null,
+                female_child: t.female_child ?? null,
+                emergency_bell: t.emergency_bell ?? null,
+                cctv: t.cctv ?? null,
+                baby_change: t.baby_change ?? null,
+              });
+            });
+
+            return m;
           });
 
-          return m;
-        });
+          const batchMarkers = await Promise.all(markerPromises);
+          newMarkers.push(...batchMarkers.filter(Boolean));
 
-        const created = await Promise.all(markerPromises);
-        const newMarkers = created.filter(Boolean) as any[];
+          // 배치 간 짧은 대기 시간으로 UI 블로킹 방지
+          if (i + BATCH_SIZE < filtered.length) {
+            await new Promise(resolve => setTimeout(resolve, 10));
+          }
+        }
 
         clusterer.clear();
         if (newMarkers.length > 0) clusterer.addMarkers(newMarkers);
@@ -160,7 +173,13 @@ export function useToiletMarkers(
       if (fetchTimeoutRef.current) {
         clearTimeout(fetchTimeoutRef.current);
       }
-      kakao.maps.event.removeListener(idleListener);
+      if (idleListener) {
+        try {
+          kakao.maps.event.removeListener(idleListener);
+        } catch (e) {
+          // 이미 제거된 경우 무시
+        }
+      }
     };
   }, [
     map,

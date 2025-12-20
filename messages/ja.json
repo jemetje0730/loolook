@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "about": "紹介",
+    "contact": "お問い合わせ",
+    "report": "報告する"
+  },
+  "metadata": {
+    "title": "LooLook - 公衆トイレを探す",
+    "description": "韓国全国の公衆トイレ位置情報サービス"
+  },
+  "detail": {
+    "maleToilet": "男性トイレ",
+    "femaleToilet": "女性トイレ",
+    "maleDisabled": "男性障害者用",
+    "femaleDisabled": "女性障害者用",
+    "babyChange": "おむつ交換台",
+    "emergencyBell": "緊急ベル",
+    "cctv": "監視カメラ",
+    "openTime": "開放時間",
+    "phone": "電話番号",
+    "noInfo": "情報なし",
+    "yes": "あり",
+    "no": "なし"
+  },
+  "language": {
+    "korean": "한국어",
+    "english": "English",
+    "chinese": "中文",
+    "japanese": "日本語"
+  },
+  "filter": {
+    "maleToilet": "男性トイレ",
+    "femaleToilet": "女性トイレ",
+    "babyChange": "おむつ交換台",
+    "disabledToilet": "多目的トイレ"
+  },
+  "search": {
+    "placeholder": "例：住所を入力してください",
+    "button": "検索"
+  },
+  "feedback": {
+    "title": "フィードバック＆報告",
+    "subtitle": "新しいトイレを見つけましたか？誤った情報や改善提案がありますか？\nあなたの報告がより良い地図を作ります。",
+    "categoryLabel": "報告内容",
+    "toiletReport": "トイレ報告",
+    "correction": "情報修正",
+    "bug": "バグ報告",
+    "suggestion": "機能提案",
+    "locationLabel": "場所（住所またはランドマーク）",
+    "locationPlaceholder": "例：江南駅3番出口、ソウル",
+    "contentLabel": "詳細",
+    "emailLabel": "メールアドレス（任意）",
+    "emailPlaceholder": "返信をご希望の場合はメールアドレスを入力してください。",
+    "submitButton": "報告を送信",
+    "submitting": "送信中...",
+    "successMessage": "ご報告ありがとうございます！確認後、反映いたします。",
+    "errorMessage": "送信に失敗しました。もう一度お試しください。",
+    "placeholderToiletReport": "例：江南駅3番出口付近に公衆トイレがあります。\n場所：ソウル江南区江南大路地下396\n施設：男女別、多目的トイレあり",
+    "placeholderCorrection": "例：江南駅1番出口のトイレは現在工事中で利用できません。",
+    "placeholderOther": "ご自由にご意見をお聞かせください。"
+  }
+}
