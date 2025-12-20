@@ -187,6 +187,16 @@ export function useMyLocation(map: any, mapDivRef: RefObject<HTMLDivElement>) {
       }
       cleanupOrientationRef.current?.();
       cleanupOrientationRef.current = null;
+
+      // overlay 제거
+      if (myLocRef.current?.overlay) {
+        try {
+          myLocRef.current.overlay.setMap(null);
+        } catch (e) {
+          // 이미 제거된 경우 무시
+        }
+        myLocRef.current = null;
+      }
     };
   }, [map, mapDivRef]);
 }
