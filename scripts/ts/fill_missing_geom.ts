@@ -5,12 +5,15 @@ import postgres from 'postgres';
 import fetch from 'node-fetch';
 
 // ---------- ENV ----------
-const DATABASE_URL = process.env.DATABASE_URL;
+// USE_PRODUCTION=true 로 실행하면 PRODUCTION_DB 사용, 아니면 DATABASE_URL 사용
+const DATABASE_URL = process.env.USE_PRODUCTION === 'true'
+  ? process.env.PRODUCTION_DB
+  : process.env.DATABASE_URL;
 const VWORLD_KEY   = process.env.VWORLD_KEY ?? '';
 const KAKAO_REST_KEY = process.env.KAKAO_REST_KEY ?? '';
 
 if (!DATABASE_URL) {
-  console.error('[fill] DATABASE_URL 누락 (.env.local 확인)');
+  console.error('[fill] DATABASE_URL 또는 PRODUCTION_DB 누락 (.env.local 확인)');
   process.exit(1);
 }
 
@@ -295,18 +298,17 @@ async function main(){
 
   for (let i=0; i<targets.length; i+=BATCH){
     const chunk = targets.slice(i, i+BATCH);
-    console.log(`[fill] 배치 시작 (건수: ${chunk.length})`);
+    console.log(`[fill] 배치 ${Math.floor(i/BATCH)+1}/${Math.ceil(targets.length/BATCH)} 시작 (건수: ${chunk.length})`);
+
+    // 지오코딩 결과 수집
+    const updates: Array<{id: string; lat: number; lng: number}> = [];
 
     for (const r of chunk){
       const addr = (r.address||'').trim();
       try{
         const g = await geocodeSmart(addr);
         if (g && isValidKoreaCoord(g.lat, g.lng)){
-          await sql/*sql*/`
-            UPDATE toilets
-            SET geom = ST_SetSRID(ST_MakePoint(${g.lng}, ${g.lat}), 4326)::geography
-            WHERE id = ${r.id}
-          `;
+          updates.push({ id: r.id, lat: g.lat, lng: g.lng });
           success++;
         }else{
           failed++;
@@ -323,6 +325,34 @@ async function main(){
         console.log(`[fill] 진행 ${processed}/${target} (${pct}%)  성공:${success} 실패:${failed}`);
       }
       await sleep(150); // 카카오 401/429 예방
+    }
+
+    // 배치 UPDATE 실행 (한 번에)
+    if (updates.length > 0) {
+      console.log(`[fill] 배치 UPDATE 실행 (${updates.length}건)...`);
+
+      // CASE WHEN을 사용한 배치 UPDATE
+      const whenClauses = updates.map((_, idx) => {
+        const offset = idx * 3;
+        return `WHEN $${offset + 1}::bigint THEN ST_SetSRID(ST_MakePoint($${offset + 2}, $${offset + 3}), 4326)::geography`;
+      }).join('\n        ');
+
+      const params: any[] = [];
+      const ids: string[] = [];
+      for (const u of updates) {
+        params.push(u.id, u.lng, u.lat);
+        ids.push(u.id);
+      }
+
+      await sql.unsafe(`
+        UPDATE toilets
+        SET geom = CASE id
+          ${whenClauses}
+        END
+        WHERE id = ANY($${params.length + 1}::bigint[])
+      `, [...params, ids]);
+
+      console.log(`[fill] 배치 UPDATE 완료`);
     }
   }
 

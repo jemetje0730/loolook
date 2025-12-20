@@ -7,11 +7,15 @@ import postgres from 'postgres';
 import fetch from 'node-fetch';
 import { parse } from 'csv-parse/sync';
 
-const DATABASE_URL = process.env.DATABASE_URL!;
+// USE_PRODUCTION=true 로 실행하면 PRODUCTION_DB 사용, 아니면 DATABASE_URL 사용
+const DATABASE_URL = process.env.USE_PRODUCTION === 'true'
+  ? process.env.PRODUCTION_DB!
+  : process.env.DATABASE_URL!;
+
 const VWORLD_KEY = process.env.VWORLD_KEY!;
 
 if (!DATABASE_URL) {
-  console.error('[fix-addresses] ❌ DATABASE_URL 누락 (.env.local 확인)');
+  console.error('[fix-addresses] ❌ DATABASE_URL 또는 PRODUCTION_DB 누락 (.env.local 확인)');
   process.exit(1);
 }
 if (!VWORLD_KEY) {
