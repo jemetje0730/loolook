@@ -15,6 +15,7 @@ import { useKakaoMap } from '@/src/hooks/useKakaoMap';
 import { useClusterer } from '@/src/hooks/useClusterer';
 import { useMyLocation } from '@/src/hooks/useMyLocation';
 import { useToiletMarkers } from '@/src/hooks/useToiletMarkers';
+import { useMapRotation } from '@/src/hooks/useMapRotation';
 
 declare global {
   interface Window {
@@ -55,9 +56,12 @@ export default function MapView() {
   const clusterer = useClusterer(map);
 
   // 4) 내 위치 / 나침반
-  useMyLocation(map, mapRef);
+  const { moveToMyLocation } = useMyLocation(map, mapRef);
 
-  // 5) 화장실 마커 로딩 + 필터링
+  // 5) 360도 회전 기능 (모바일 두 손가락 터치)
+  useMapRotation(map, mapRef);
+
+  // 6) 화장실 마커 로딩 + 필터링
   useToiletMarkers(map, clusterer, filters, activeFilters, setSelected);
 
   /** 🔍 주소+장소 통합 검색 (기존 로직 그대로) */
@@ -147,6 +151,26 @@ export default function MapView() {
             placeholder={t('search.placeholder')}
             className="w-full outline-none bg-transparent text-sm md:text-base"
           />
+          <button
+            onClick={moveToMyLocation}
+            className="shrink-0 w-8 h-8 rounded-xl bg-white hover:bg-gray-100 flex items-center justify-center transition"
+            title="내 위치로 이동"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5 text-gray-700"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 2.25c-.55 0-1 .45-1 1v1.5c0 .55.45 1 1 1s1-.45 1-1v-1.5c0-.55-.45-1-1-1zm0 16.5c-.55 0-1 .45-1 1v1.5c0 .55.45 1 1 1s1-.45 1-1v-1.5c0-.55-.45-1-1-1zm9.75-7.5h-1.5c-.55 0-1 .45-1 1s.45 1 1 1h1.5c.55 0 1-.45 1-1s-.45-1-1-1zm-16.5 0h-1.5c-.55 0-1 .45-1 1s.45 1 1 1h1.5c.55 0 1-.45 1-1s-.45-1-1-1zM12 7.5c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5z"
+              />
+            </svg>
+          </button>
           <button
             onClick={() => handleSearch(query)}
             className="shrink-0 px-2.5 sm:px-3 py-1.5 rounded-xl bg-black text-white text-xs sm:text-sm whitespace-nowrap"
