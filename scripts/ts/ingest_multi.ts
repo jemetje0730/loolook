@@ -100,10 +100,6 @@ function cleanAddress(raw: string) {
   a = a.replace(/(로|길|대로|로길)(\d)/g, '$1 $2');
   a = a.replace(/\s{2,}/g, ' ').trim();
 
-  if (!/서울|부산|인천|대구|대전|광주|울산|경기|강원|충청|전라|경상|제주|대한민국|한국/.test(a)) {
-    if (/([가-힣A-Za-z]+구)/.test(a)) a = `서울특별시 ${a}`;
-    else a = `대한민국 ${a}`;
-  }
   return a;
 }
 
@@ -186,7 +182,14 @@ async function ingestCsv(file: { path: string; source: string }) {
     const jibun = (r['지번주소'] ?? r['소재지지번주소'] ?? '').trim();
     const rawAddress = road || jibun;
 
-    if (!name || !rawAddress) continue;
+    if (!name || !rawAddress) {
+      console.warn('[ingest-multi] name/address 스킵:', {
+        name,
+        rawAddress,
+        row: r,
+      });
+      continue;
+    }
 
     const address = cleanAddress(rawAddress);
 
@@ -365,8 +368,8 @@ async function ingestCsv(file: { path: string; source: string }) {
 -----------------------------*/
 const FILES: Array<{ path: string; source: string }> = [
   {
-    path: 'data/toilets/busan_toilets.csv',
-    source: 'busan_open_data_2025',
+    path: 'data/toilets/new_gangnam_toilets.csv',
+    source: 'gangnam_research_2025',
   }
 ];
 
