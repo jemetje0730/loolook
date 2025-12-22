@@ -182,7 +182,7 @@ async function ingestCsv(file: { path: string; source: string }) {
     const name = (r['건물명'] ?? r['화장실명'] ?? r['TOILET_NM'] ?? r['MGC_NM'] ?? '').trim() || '공중화장실';
 
     // 주소 파싱
-    const road = (r['도로명주소'] ?? r['소재지도로명주소'] ?? r['ADRES_DC'] ?? '').trim();
+    const road = (r['도로명주소'] ?? r['소재지도로명주소'] ?? r['소재지주소'] ?? r['ADRES_DC'] ?? '').trim();
     const jibun = (r['지번주소'] ?? r['소재지지번주소'] ?? '').trim();
     const rawAddress = road || jibun;
 
@@ -365,20 +365,8 @@ async function ingestCsv(file: { path: string; source: string }) {
 -----------------------------*/
 const FILES: Array<{ path: string; source: string }> = [
   {
-    path: 'data/toilets/seoul_toilets.csv',
-    source: 'seoul_open_data_2025',
-  },
-  {
-    path: 'data/toilets/gyeongi_toilets.csv',
-    source: 'gyeonggi_open_data_2025',
-  },
-  {
-    path: 'data/toilets/incheon_toilets.csv',
-    source: 'incheon_open_data_2025',
-  },
-  {
-    path: 'data/toilets/daegu_toilets.csv',
-    source: 'daegu_open_data_2025',
+    path: 'data/toilets/busan_toilets.csv',
+    source: 'busan_open_data_2025',
   }
 ];
 
