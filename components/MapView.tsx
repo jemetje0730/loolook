@@ -20,11 +20,12 @@ import { useMapRotation } from '@/src/hooks/useMapRotation';
 declare global {
   interface Window {
     kakao: any;
+    MSStream?: any;
   }
 }
 
-/** ⚠️ 카카오 JS Key */
-const KAKAO_JS_KEY = '21b4298df1918600fd43c18a65d03b57';
+/** ⚠️ 카카오 JS Key (WebView에서도 JavaScript 키 사용) */
+const KAKAO_JS_KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || '21b4298df1918600fd43c18a65d03b57';
 
 export default function MapView() {
   const t = useTranslations();

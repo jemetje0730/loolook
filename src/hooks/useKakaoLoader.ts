@@ -31,13 +31,22 @@ export function useKakaoLoader(appKey: string) {
           script.id = scriptId;
           script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=clusterer,services`;
           script.onload = () => {
+            console.log('Kakao script loaded, checking window.kakao...', window.kakao);
             if (!window.kakao?.maps) {
+              console.error('kakao.maps not found after script load');
               reject(new Error('kakao.maps not found after script load'));
               return;
             }
-            window.kakao.maps.load(() => resolve());
+            console.log('Calling kakao.maps.load()...');
+            window.kakao.maps.load(() => {
+              console.log('Kakao maps loaded successfully!');
+              resolve();
+            });
           };
-          script.onerror = () => reject(new Error('Kakao SDK load failed'));
+          script.onerror = (error) => {
+            console.error('Kakao SDK script load failed:', error);
+            reject(new Error('Kakao SDK load failed'));
+          };
           document.head.appendChild(script);
         } else {
           // 이미 script 태그는 있는데 kakao만 아직 준비 안 된 경우
