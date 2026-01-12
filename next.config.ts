@@ -6,16 +6,16 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
-  // 성능 최적화 - 프로덕션에서 console.log 제거
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-
   // 이미지 최적화
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     minimumCacheTTL: 60,
+  },
+
+  // 성능 최적화 - 프로덕션에서 console.log 제거
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
 
   // 번들 최적화

@@ -46,9 +46,6 @@ type ToiletCsvRow = {
   '남성용-장애인용대변기수'?: string;
   '남성용-장애인용소변기수'?: string;
   '여성용-장애인용대변기수'?: string;
-  '남성용-어린이용대변기수'?: string;
-  '남성용-어린이용소변기수'?: string;
-  '여성용-어린이용대변기수'?: string;
 
   비상벨설치여부?: string;
   화장실입구CCTV설치유무?: string;
@@ -368,8 +365,8 @@ async function ingestCsv(file: { path: string; source: string }) {
 -----------------------------*/
 const FILES: Array<{ path: string; source: string }> = [
   {
-    path: 'data/toilets/new_gangnam_toilets.csv',
-    source: 'gangnam_research_2025',
+    path: 'data/toilets/daejeon_toilets.csv',
+    source: 'daejeon_open_data_2025',
   }
 ];
 

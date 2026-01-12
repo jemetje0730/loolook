@@ -86,6 +86,7 @@ function createMyLocationOverlay(kakao: any, map: any, lat: number, lng: number)
     content: container,
     yAnchor: 0.5,
     xAnchor: 0.5,
+    zIndex: 999, // 최상위 레이어에 표시
   });
 
   overlay.setMap(map);
@@ -127,6 +128,10 @@ export function useMyLocation(
         myLocRef.current = createMyLocationOverlay(kakao, map, lat, lng);
       } else {
         myLocRef.current.overlay.setPosition(loc);
+        // 오버레이가 지도에서 제거되었을 경우 다시 추가
+        if (!myLocRef.current.overlay.getMap()) {
+          myLocRef.current.overlay.setMap(map);
+        }
       }
 
       // headingDeg가 제공되면 업데이트, 아니면 현재 저장된 값 사용
@@ -296,12 +301,22 @@ export function useMyLocation(
 
     const { kakao } = window;
 
-    // 저장된 위치가 있으면 그곳으로 이동
+    // 저장된 위치가 있으면 그곳으로 이동 + 마커 표시
     if (lastLocationRef.current) {
       const { lat, lng } = lastLocationRef.current;
       const loc = new kakao.maps.LatLng(lat, lng);
       map.setLevel(3);
       map.setCenter(loc);
+
+      // 마커가 없으면 생성, 있으면 지도에 연결 확인
+      if (!myLocRef.current) {
+        myLocRef.current = createMyLocationOverlay(kakao, map, lat, lng);
+      } else {
+        myLocRef.current.overlay.setPosition(loc);
+        if (!myLocRef.current.overlay.getMap()) {
+          myLocRef.current.overlay.setMap(map);
+        }
+      }
       return;
     }
 
@@ -313,6 +328,16 @@ export function useMyLocation(
         const loc = new kakao.maps.LatLng(lat, lng);
         map.setLevel(3);
         map.setCenter(loc);
+
+        // 마커가 없으면 생성, 있으면 지도에 연결 확인
+        if (!myLocRef.current) {
+          myLocRef.current = createMyLocationOverlay(kakao, map, lat, lng);
+        } else {
+          myLocRef.current.overlay.setPosition(loc);
+          if (!myLocRef.current.overlay.getMap()) {
+            myLocRef.current.overlay.setMap(map);
+          }
+        }
         return;
       }
     } catch (e) {
@@ -323,10 +348,25 @@ export function useMyLocation(
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const { latitude, longitude } = pos.coords;
+          const { latitude, longitude, accuracy, heading } = pos.coords;
           const loc = new kakao.maps.LatLng(latitude, longitude);
           map.setLevel(3);
           map.setCenter(loc);
+
+          // 마커 생성
+          if (!myLocRef.current) {
+            myLocRef.current = createMyLocationOverlay(kakao, map, latitude, longitude);
+          } else {
+            myLocRef.current.overlay.setPosition(loc);
+          }
+
+          // 위치 저장
+          lastLocationRef.current = { lat: latitude, lng: longitude };
+          try {
+            window.sessionStorage.setItem('lastMyLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+          } catch (e) {
+            console.warn('failed to save lastMyLocation', e);
+          }
         },
         (err) => {
           console.warn('Geolocation error:', err);

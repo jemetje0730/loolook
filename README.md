@@ -73,6 +73,12 @@ Automated ingestion pipeline to generate clean toilet data:
 - Node.js ingestion scripts
 - CSV, geocoding, address override system
 
+### Mobile App
+- Capacitor 8
+- iOS (Xcode)
+- Android (Android Studio)
+- Geolocation API
+
 ### DevOps
 - Vercel (production + preview)
 - GitHub
@@ -237,6 +243,103 @@ npm run build
 # Start production server
 npm start
 ```
+
+## Mobile App (iOS & Android)
+
+이 프로젝트는 Capacitor를 사용하여 iOS와 Android 앱으로 빌드할 수 있습니다.
+
+### 준비 사항
+
+#### iOS
+- macOS 필요
+- Xcode 설치 (App Store에서 다운로드)
+- CocoaPods 설치: `sudo gem install cocoapods`
+- Apple Developer 계정 (배포 시 필요)
+
+#### Android
+- Android Studio 설치
+- JDK 17 이상 설치
+- Android SDK 설치 (Android Studio를 통해)
+- Google Play Developer 계정 (배포 시 필요)
+
+### 앱 빌드 및 실행
+
+```bash
+# iOS와 Android 네이티브 프로젝트 동기화
+npm run cap:sync
+
+# iOS 프로젝트 열기 (Xcode)
+npm run cap:open:ios
+
+# Android 프로젝트 열기 (Android Studio)
+npm run cap:open:android
+
+# iOS 시뮬레이터에서 실행
+npm run cap:run:ios
+
+# Android 에뮬레이터/기기에서 실행
+npm run cap:run:android
+```
+
+### iOS 앱 스토어 배포
+
+1. Xcode에서 `ios/App/App.xcworkspace` 열기
+2. Signing & Capabilities에서 Team 설정
+3. Product > Archive로 아카이브 생성
+4. Distribute App을 통해 App Store Connect에 업로드
+5. App Store Connect에서 앱 정보 입력 후 심사 제출
+
+### Android Play 스토어 배포
+
+1. Android Studio에서 `android/` 폴더 열기
+2. Build > Generate Signed Bundle / APK 선택
+3. 키스토어 생성 (처음) 또는 기존 키스토어 사용
+4. Release AAB 생성
+5. Google Play Console에서 앱 등록 후 AAB 업로드
+6. 스토어 등록 정보 입력 후 심사 제출
+
+### 앱 아이콘 및 스플래시 스크린 커스터마이징
+
+커스텀 앱 아이콘을 추가하려면:
+
+1. 1024x1024 PNG 아이콘 준비
+2. [cordova-res](https://github.com/ionic-team/cordova-res) 사용:
+   ```bash
+   npm install -g cordova-res
+   # 아이콘 파일을 resources/icon.png에 저장
+   # 스플래시 이미지를 resources/splash.png에 저장
+   cordova-res ios --skip-config --copy
+   cordova-res android --skip-config --copy
+   ```
+
+또는 수동으로:
+- iOS: `ios/App/App/Assets.xcassets/AppIcon.appiconset/`에 이미지 추가
+- Android: `android/app/src/main/res/mipmap-*/`에 이미지 추가
+
+### 위치 권한 설정
+
+앱은 사용자의 현재 위치를 지도에 표시하기 위해 위치 권한이 필요합니다.
+
+- **iOS**: `ios/App/App/Info.plist`에 권한 설명 추가됨
+- **Android**: `android/app/src/main/AndroidManifest.xml`에 권한 추가됨
+
+### 개발 환경 설정
+
+개발 중에는 [capacitor.config.ts](capacitor.config.ts)의 `server.url`을 로컬 개발 서버로 변경할 수 있습니다:
+
+```typescript
+const config: CapacitorConfig = {
+  appId: 'com.loolook.app',
+  appName: 'LooLook',
+  webDir: 'out',
+  server: {
+    url: 'http://localhost:3000',  // 로컬 개발 시
+    cleartext: true
+  }
+};
+```
+
+프로덕션 빌드 시에는 다시 `https://loolook.vercel.app`으로 변경하세요.
 
 ## License
 

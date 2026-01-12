@@ -46,11 +46,7 @@ export default function ContactPage() {
         <div className="md:col-span-1 space-y-6">
           <div>
             <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wide mb-2">Email</h3>
-            <p className="text-sm text-gray-600 hover:underline cursor-pointer">hello@loolook.com</p>
-          </div>
-          <div>
-            <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wide mb-2">Social</h3>
-            <p className="text-sm text-gray-600">@loolook_map</p>
+            <p className="text-sm text-gray-600 hover:underline cursor-pointer">Please fill in the blank!</p>
           </div>
         </div>
 

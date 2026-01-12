@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LooLook</string>
+    <string name="title_activity_main">LooLook</string>
+    <string name="package_name">com.loolook.app</string>
+    <string name="custom_url_scheme">com.loolook.app</string>
+</resources>
