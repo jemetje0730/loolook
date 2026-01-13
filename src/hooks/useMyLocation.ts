@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, type RefObject } from 'react';
 
+/** 🌏 한국 좌표 범위 */
+const KR = { minLat: 33, maxLat: 39, minLng: 124, maxLng: 132 };
+const inRange = (v: number, min: number, max: number) =>
+  Number.isFinite(v) && v >= min && v <= max;
+
 /** 🔵 내 위치 오버레이용 스타일 주입 (한 번만) */
 function injectMyLocStylesOnce() {
   if (document.getElementById('my-loc-style')) return;
@@ -162,6 +167,13 @@ export function useMyLocation(
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude, accuracy, heading } = pos.coords;
+
+          // ✅ 한국 좌표 범위 검증 - 범위 밖이면 무시
+          if (!inRange(latitude, KR.minLat, KR.maxLat) || !inRange(longitude, KR.minLng, KR.maxLng)) {
+            console.warn('Location outside Korea bounds:', { latitude, longitude });
+            return;
+          }
+
           updateMyLocVisual(latitude, longitude, accuracy, heading ?? null);
 
           const loc = new kakao.maps.LatLng(latitude, longitude);
@@ -175,6 +187,13 @@ export function useMyLocation(
       geoWatchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude, accuracy, heading } = pos.coords;
+
+          // ✅ 한국 좌표 범위 검증 - 범위 밖이면 무시
+          if (!inRange(latitude, KR.minLat, KR.maxLat) || !inRange(longitude, KR.minLng, KR.maxLng)) {
+            console.warn('Watch location outside Korea bounds:', { latitude, longitude });
+            return;
+          }
+
           if (typeof heading === 'number' && Number.isFinite(heading)) {
             headingDegRef.current = heading;
           }
@@ -349,6 +368,14 @@ export function useMyLocation(
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude, accuracy, heading } = pos.coords;
+
+          // ✅ 한국 좌표 범위 검증 - 범위 밖이면 경고
+          if (!inRange(latitude, KR.minLat, KR.maxLat) || !inRange(longitude, KR.minLng, KR.maxLng)) {
+            console.warn('Location outside Korea bounds:', { latitude, longitude });
+            alert('현재 위치가 한국 범위를 벗어났습니다.');
+            return;
+          }
+
           const loc = new kakao.maps.LatLng(latitude, longitude);
           map.setLevel(3);
           map.setCenter(loc);
