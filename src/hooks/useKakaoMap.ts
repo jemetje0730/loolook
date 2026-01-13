@@ -40,46 +40,63 @@ export function useKakaoMap(ready: boolean, mapDivRef: RefObject<HTMLDivElement>
       const defaultLat = 37.5665; // 서울 시청
       const defaultLng = 126.9780;
 
-      // 먼저 지도를 생성 (즉시 표시)
-      let initialLat = defaultLat;
-      let initialLng = defaultLng;
-
+      // 저장된 위치가 있으면 즉시 지도 생성
       if (last) {
-        initialLat = last.lat;
-        initialLng = last.lng;
+        const m = new kakao.maps.Map(mapDivRef.current, {
+          center: new kakao.maps.LatLng(last.lat, last.lng),
+          level: 3,
+        });
+        setMap(m);
       }
-
-      const m = new kakao.maps.Map(mapDivRef.current, {
-        center: new kakao.maps.LatLng(initialLat, initialLng),
-        level: 4,
-      });
-      setMap(m);
-
-      // 저장된 위치가 없고 위치 권한이 있으면 현재 위치로 이동
-      if (!last && navigator.geolocation) {
+      // 저장된 위치가 없으면 GPS를 먼저 시도
+      else if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
 
+            // 한국 범위 내 좌표면 해당 위치로 지도 생성
             if (inRange(lat, KR.minLat, KR.maxLat) && inRange(lng, KR.minLng, KR.maxLng)) {
-              m.setCenter(new kakao.maps.LatLng(lat, lng));
-              m.setLevel(3); // 내 위치로 줌인
+              const m = new kakao.maps.Map(mapDivRef.current, {
+                center: new kakao.maps.LatLng(lat, lng),
+                level: 3,
+              });
+              setMap(m);
+
               try {
                 window.sessionStorage.setItem('lastMyLocation', JSON.stringify({ lat, lng }));
               } catch (e) {}
+            } else {
+              // 한국 범위 밖이면 서울로 지도 생성
+              const m = new kakao.maps.Map(mapDivRef.current, {
+                center: new kakao.maps.LatLng(defaultLat, defaultLng),
+                level: 4,
+              });
+              setMap(m);
             }
           },
           (error) => {
             console.log('Geolocation error:', error.message);
-            // 위치 권한 거부되어도 기본 위치(서울)로 지도는 이미 표시됨
+            // GPS 실패 시 서울로 지도 생성
+            const m = new kakao.maps.Map(mapDivRef.current, {
+              center: new kakao.maps.LatLng(defaultLat, defaultLng),
+              level: 4,
+            });
+            setMap(m);
           },
           {
             enableHighAccuracy: true,
-            timeout: 3000, // 3초 타임아웃 - 빠르게 포기하고 서울로 표시
+            timeout: 3000, // 3초 타임아웃
             maximumAge: 10000 // 10초 이내 캐시된 위치 사용
           }
         );
+      } else {
+        // Geolocation 지원 안 하면 서울로 지도 생성
+        const m = new kakao.maps.Map(mapDivRef.current, {
+          center: new kakao.maps.LatLng(defaultLat, defaultLng),
+          level: 4,
+        });
+        setMap(m);
       }
     }
   }, [ready, mapDivRef, map]);
