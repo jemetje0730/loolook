@@ -162,8 +162,28 @@ export function useMyLocation(
       }
     };
 
-    // watchPosition으로 위치 추적 (마커만 표시, 지도 이동 안 함)
+    // 첫 위치 + watchPosition
     if (!geoWatchIdRef.current && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy, heading } = pos.coords;
+
+          // ✅ 한국 좌표 범위 검증 - 범위 밖이면 무시
+          if (!inRange(latitude, KR.minLat, KR.maxLat) || !inRange(longitude, KR.minLng, KR.maxLng)) {
+            console.warn('Location outside Korea bounds:', { latitude, longitude });
+            return;
+          }
+
+          updateMyLocVisual(latitude, longitude, accuracy, heading ?? null);
+
+          const loc = new kakao.maps.LatLng(latitude, longitude);
+          map.setLevel(3);
+          map.setCenter(loc);
+        },
+        (err) => console.warn('Geolocation error:', err),
+        { enableHighAccuracy: true },
+      );
+
       geoWatchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude, accuracy, heading } = pos.coords;
