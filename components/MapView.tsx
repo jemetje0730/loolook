@@ -10,6 +10,7 @@ const DetailPanel = dynamic(() => import('@/components/DetailPanel'), {
   ssr: false,
 });
 
+import MapLoadingScreen from '@/components/MapLoadingScreen';
 import { useKakaoLoader } from '@/src/hooks/useKakaoLoader';
 import { useKakaoMap } from '@/src/hooks/useKakaoMap';
 import { useClusterer } from '@/src/hooks/useClusterer';
@@ -139,6 +140,9 @@ export default function MapView() {
 
   return (
     <div className="relative w-full h-full">
+      {/* 🎨 로딩 화면 - 지도가 로드되기 전까지 표시 */}
+      {!map && <MapLoadingScreen />}
+
       {/* 🔍 상단 검색 + 필터 UI - 모바일 최적화 */}
       <div className="absolute z-10 top-2 sm:top-4 left-1/2 -translate-x-1/2 w-[min(680px,95vw)] px-2 sm:px-0">
         <div className="flex items-center gap-2 rounded-2xl bg-white/90 backdrop-blur px-3 py-2 shadow">
