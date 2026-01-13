@@ -165,7 +165,7 @@ export function useMyLocation(
           updateMyLocVisual(latitude, longitude, accuracy, heading ?? null);
 
           const loc = new kakao.maps.LatLng(latitude, longitude);
-          map.setLevel(1);
+          map.setLevel(3); // Changed from 1 to 3 for better map tile visibility
           map.setCenter(loc);
         },
         (err) => console.warn('Geolocation error:', err),

@@ -5,8 +5,9 @@ const config: CapacitorConfig = {
   appName: 'LooLook',
   webDir: 'out',
   server: {
-    url: 'https://loolook.vercel.app/ko',
-    cleartext: true
+    url: 'https://loolook.vercel.app',
+    cleartext: true,
+    androidScheme: 'https'
   }
 };
 
