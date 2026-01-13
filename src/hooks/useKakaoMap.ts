@@ -64,6 +64,7 @@ export function useKakaoMap(ready: boolean, mapDivRef: RefObject<HTMLDivElement>
 
             if (inRange(lat, KR.minLat, KR.maxLat) && inRange(lng, KR.minLng, KR.maxLng)) {
               m.setCenter(new kakao.maps.LatLng(lat, lng));
+              m.setLevel(3); // 내 위치로 줌인
               try {
                 window.sessionStorage.setItem('lastMyLocation', JSON.stringify({ lat, lng }));
               } catch (e) {}
@@ -73,6 +74,11 @@ export function useKakaoMap(ready: boolean, mapDivRef: RefObject<HTMLDivElement>
             console.log('Geolocation error:', error.message);
             // 위치 권한 거부되어도 기본 위치(서울)로 지도는 이미 표시됨
           },
+          {
+            enableHighAccuracy: true,
+            timeout: 3000, // 3초 타임아웃 - 빠르게 포기하고 서울로 표시
+            maximumAge: 10000 // 10초 이내 캐시된 위치 사용
+          }
         );
       }
     }
