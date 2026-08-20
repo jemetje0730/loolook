@@ -8,7 +8,7 @@ Built from a simple real-world problem: **finding a restroom can be unexpectedly
 
 **Live:** https://loolook.vercel.app
 
----
+```
 
 ## Why I Built This
 
@@ -23,7 +23,7 @@ I wanted to build a simple experience where users could:
 
 The project eventually became a fully deployed product with a web app and mobile builds.
 
----
+```
 
 ## Real-World Usage
 
@@ -39,7 +39,7 @@ That experience was especially valuable because it allowed me to move beyond sim
 - How people use a product in real situations
 - How product decisions change after user feedback
 
----
+```
 
 ## Key Features
 
@@ -53,7 +53,7 @@ That experience was especially valuable because it allowed me to move beyond sim
 - Korean, English, Chinese, and Japanese support
 - User feedback and restroom reporting
 
----
+```
 
 ## Data Pipeline
 
@@ -68,7 +68,7 @@ The ingestion pipeline includes:
 - Manual overrides for problematic records
 - PostgreSQL + PostGIS for geospatial data
 
----
+```
 
 ## Tech Stack
 
@@ -99,7 +99,7 @@ The ingestion pipeline includes:
 - Vercel
 - GitHub
 
----
+```
 
 ## What I Learned
 
@@ -113,7 +113,7 @@ Some of the biggest lessons were:
 - Building and deploying a complete product
 - Turning user feedback into product decisions
 
----
+```
 
 ## Project Structure
 ```
