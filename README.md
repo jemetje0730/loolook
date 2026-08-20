@@ -1,89 +1,119 @@
-# LooLook — Toilet Map for Korea
+# LooLook
 
-A modern, mobile-friendly map service that helps users quickly find nearby private/public toilets.
-Built with Next.js 16, Kakao Maps SDK, TypeScript, and a fully automated geospatial ingestion pipeline.
+### Find a restroom when you need one.
 
-## Features
+LooLook is a location-based web and mobile app that helps people quickly find nearby public and free restrooms in Korea.
 
-- **Interactive Kakao Map**
-  - Smooth marker rendering with clustering
-  - Real-time GPS tracking
-  - No marker flickering when zooming or panning
-  - Works on all mobile browsers and desktop
+Built from a simple real-world problem: **finding a restroom can be unexpectedly difficult, especially when you're in an unfamiliar place or in an urgent situation.**
 
-- **Multilingual Support (i18n)**
-  - 4 languages: Korean (default), English, Chinese, Japanese
-  - UI translations for filters, search, and detail panels
-  - Auto-translation of toilet data (name, address, category) to English for non-Korean languages
-  - Language switcher in navigation
-  - Powered by next-intl
+**Live:** https://loolook.vercel.app
 
-- **Toilet Filters**
-  - Male toilet
-  - Female toilet
-  - Accessible (disabled) toilet
-  - Baby-changing table
-  - Gender-neutral
-  - Free toilets
-  - Filters do not recenter the map
+---
 
-- **Real-time My Location**
-  - Accurate position overlay
-  - Fixed-radius blue circle
-  - Compass orientation support
-  - Restores previous location using sessionStorage
-  - Works instantly without reloading the map
+## Why I Built This
 
-- **Search**
-  - Address search via Kakao geocoder
-  - Keyword / POI search support
-  - Smooth map recentering without extra markers
+Public restroom information exists across multiple datasets, but it is often fragmented, inconsistent, or difficult to access when you actually need it.
 
-- **User Feedback System**
-  - Multilingual feedback form
-  - Report new toilets
-  - Correct information
-  - Bug reports and feature suggestions
+I wanted to build a simple experience where users could:
 
-## Geospatial Data Pipeline
+- Open the app
+- See nearby restrooms immediately
+- Filter based on their needs
+- Navigate without dealing with scattered public datasets
 
-Automated ingestion pipeline to generate clean toilet data:
+The project eventually became a fully deployed product with a web app and mobile builds.
+
+---
+
+## Real-World Usage
+
+LooLook was not built only as a portfolio project.
+
+The product was launched and used by real users.
+
+I have also received direct feedback from users who used LooLook in urgent situations and found it genuinely helpful.
+
+That experience was especially valuable because it allowed me to move beyond simply building features and start thinking about:
+
+- What problems users actually care about
+- How people use a product in real situations
+- How product decisions change after user feedback
+
+---
+
+## Key Features
+
+- Interactive Kakao Map with marker clustering
+- Real-time user location
+- Public and private restroom discovery
+- Accessibility and facility filters
+- Baby-changing table information
+- Free restroom filtering
+- Address and keyword search
+- Korean, English, Chinese, and Japanese support
+- User feedback and restroom reporting
+
+---
+
+## Data Pipeline
+
+One of the main technical challenges was turning fragmented public restroom data into a clean, usable dataset.
+
+The ingestion pipeline includes:
+
 - CSV ingestion from multiple sources
-- Automatic deduplication using fingerprint (name + address)
-- Missing coordinates auto-filled using Kakao geocoder
+- Automatic deduplication using name and address fingerprints
+- Automatic coordinate completion through geocoding
 - Address normalization
-- Manual overrides via `overrides_address.csv`
-- Final optimized dataset served via `/api/toilets?mode=all`
+- Manual overrides for problematic records
+- PostgreSQL + PostGIS for geospatial data
+
+---
 
 ## Tech Stack
 
-### Frontend
-- Next.js 16 (App Router)
+**Frontend**
+- Next.js 16
 - React 19
 - TypeScript
-- Kakao Maps JavaScript SDK
-- next-intl (internationalization)
-- TailwindCSS
-- Zustand (state management)
+- Tailwind CSS
+- Zustand
 
-### Backend
+**Maps & Location**
+- Kakao Maps JavaScript SDK
+- Kakao Geocoding API
+- Browser Geolocation API
+
+**Backend & Data**
 - Next.js Route Handlers
 - PostgreSQL
 - PostGIS
-- Node.js ingestion scripts
-- CSV, geocoding, address override system
+- Node.js data ingestion scripts
 
-### Mobile App
-- Capacitor 8
-- iOS (Xcode)
-- Android (Android Studio)
-- Geolocation API
+**Mobile**
+- Capacitor
+- iOS
+- Android
 
-### DevOps
-- Vercel (production + preview)
+**Deployment**
+- Vercel
 - GitHub
-- Environment variables (REST API & DB URL)
-- Automated CI/CD via Vercel
+
+---
+
+## What I Learned
+
+Building LooLook taught me more than how to build a map application.
+
+Some of the biggest lessons were:
+
+- Working with messy real-world public data
+- Designing geospatial data pipelines
+- Handling location-based UX
+- Building and deploying a complete product
+- Turning user feedback into product decisions
+
+---
 
 ## Project Structure
 ```
